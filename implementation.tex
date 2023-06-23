@@ -1,0 +1,126 @@
+\section{Implementation}
+We next describe the implementation of our tool which we run on our benchmarks to find these patterns.
+
+\subsection{Static Analysis and Instrumentation}
+\label{sec:analyses}
+
+We use Javassist~\cite{chiba00:_load_struc_reflec_java} to perform class hierarchy analysis on clients
+and create a static call graph. We collect data about client usages of libraries by running client
+test suites under instrumentation. The instrumentation records API
+uses which cross client/library boundaries, closely mirroring the API
+usage patterns that we describe in
+Section~\ref{sec:patterns}. We also use Javassist for instrumentation,
+modifying the build system of each project (Maven) to run instrumented
+tests and obtain dynamic call graphs. 
+\\
+
+\begin{figure*}[h]
+ \begin{center}
+\resizebox{0.9\textwidth}{!}{
+  \begin{tikzpicture}
+    \node[block] (client) {client};
+    \node[block,below=1cm of client] (library) {library};
+
+    \draw (library) -- node[left] (depends) {depends on} (client);
+
+    \node[above left=.75em of client] (ja) {\begin{minipage}{7em} modify \\with Javassist \end{minipage}};
+    \draw[-Latex] (ja) -> (client);
+    \draw[-Latex] (ja) to [->,bend right=35] (library.west);
+
+    \node[block, above right=2em of client,xshift=-2em] (olib) {other library};
+    \draw (client) -- node[right,xshift=.1em] (also) {also depends on} (olib);
+
+    \node[oval,right=of depends] (test) {maven: run tests};
+
+    \draw[-Latex] (client) to [->,bend left=15] (test);
+
+    \node[block, right=10em of client] (output) {test output};
+    \node[block, right=10em of library] (raw) {raw API usage info};
+
+    \draw[-Latex] (test) to (output);
+    \draw[-Latex] (test) to (raw);
+
+    \node[oval, right=of raw] (Py) {Python scripts};
+    \draw[-Latex] (raw) to (Py);
+
+    \node[block, right=1em of Py] (viz) {D3 visualizations};
+    \draw[-Latex] (Py) to (viz);
+  \end{tikzpicture}
+}
+  \caption{Our instrumentation workflow. Using Javassist, we analyze and instrument clients and run their test suites. (We process the generated data with Python scripts to create D3 visualizations for VizAPI.)}
+  \label{fig:workflow}
+ \end{center}
+\end{figure*}
+
+Figure~\ref{fig:workflow} summarizes our instrumentation and
+data capture workflow. We next describe our instrumentation implementation in detail.
+
+We identify interactions across the client/library boundaries by inspecting JAR files of
+each software component to obtain a list of classes for every component. We associate classes 
+and their members to components based on these lists. Since the JAR files contain source code,
+we ensure that none of the library uses meant solely for unit testing are captured.
+
+\paragraph{Vanilla invocations}
+The standard case is simple. At every invoke instruction in every
+loaded method which transfers control between the client and the
+library, we add code to record that invoke by incrementing a counter.
+We handle both static and virtual (including special, virtual,
+interface, and dynamic) calls. Crossing the client/library boundary
+includes conventional calls from the client to the library as well as callbacks from the library to the client.  
+
+\paragraph{Field accesses}
+We capture direct (field sets and gets) and reflective (via invocations of
+\texttt{java.lang.reflect.Field.get()} and \texttt{.set()}) field
+accesses.
+
+\paragraph{Dynamic proxies and reflective calls}
+We specially handle invocations of the distinguished method 
+\texttt{java.lang.reflect.Method.invoke()} method used to invoke dynamic proxies and reflective calls, recording
+details of the calls that we intercept. 
+We identify dynamic proxies by checking whether the invocation 
+of \texttt{Method.invoke()} originates from a class that implements 
+\texttt{java.lang.reflect.InvocationHandler}. If so,
+we inspect the call stack to find the caller and callee of 
+\texttt{Method.invoke()} and record the call if it crosses the client/library boundary. 
+All other calls to \texttt{Method.invoke()} are standard reflective calls, 
+and we record the respective callers and callees.
+(We also specifically ignore calls to \texttt{Method.invoke()} made by the Maven surefire plugin
+as it runs tests.)
+% \todo[inline]{When running tests, the Maven surefire plugin uses the invoke method too,
+% which is ignored. Should we talk about that?}
+
+Instrumenting methods also allows us to capture several other library uses,
+as we describe below.
+
+\paragraph{Class usages}
+We capture reflective uses of the \texttt{Class} object by intercepting calls to
+\texttt{java.lang.Class.forName()} and \texttt{java.lang.ClassLoader.loadClass()}.
+
+\paragraph{Service Loaders} We are particularly interested in bypasses of 
+services that use the \texttt{ServiceLoader} API. Before the instrumentation, we record a list 
+of services and their implementations by inspecting files in \texttt{src/main/resources/META-INF/services}.
+With this information, we look for service bypasses which are direct uses of service implementation 
+classes in clients, either through instantiations, casts or reflection. We also intercept calls 
+to method \texttt{load()} in classes with name \texttt{Service*Loader} and record any calls to methods beyond 
+the published interface.
+
+\paragraph{setAccessible()} 
+Java provides the \texttt{setAccessible()} method to allow reflective access to class members despite
+access modifiers. After a call to this method, the program may then (subject to security manager restrictions)
+reflectively access the class member.
+We thus record calls to \texttt{setAccessible()} along with the previous visibility of the class member.
+
+\paragraph{Annotations} 
+We have a quasi-static approach for finding class, field and method
+annotations: we observe all annotations for a class or class member
+when it is loaded, and record cases where a class or member declares an
+annotation from the library of interest. We also record an association
+between the class and its memers' annotations.
+
+\paragraph{Inheritance and interface implementation} At load time,
+we also record information about all superclasses and implemented interfaces
+that cross the library/client barrier.
+
+\paragraph{Instantiations and casts} We also instrument the
+\texttt{NewExpr} and \texttt{Cast} bytecodes to record library/client 
+instantiations and casts.

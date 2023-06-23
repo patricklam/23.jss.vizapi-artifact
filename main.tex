@@ -35,6 +35,19 @@
 %% End of ecrc-specific commands
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+\usepackage{tikz}
+\tikzstyle{block} = [rectangle, draw, 
+    text width=5em, text centered, rounded corners, minimum height=2em]
+\tikzstyle{oval} = [ellipse, draw, 
+    text width=5em, text centered, rounded corners, minimum height=2em]
+\tikzstyle{bt} = [rectangle, draw, 
+    text width=1em, text centered, rounded corners, minimum height=2em]
+\usetikzlibrary{calc}
+\usetikzlibrary{arrows.meta}
+\usetikzlibrary{positioning}
+\usetikzlibrary{fit}
+\usetikzlibrary{shapes.geometric}
+
 %% The amssymb package provides various useful mathematical symbols
 \usepackage{amssymb}
 %% The amsthm package provides extended theorem environments
@@ -115,7 +128,6 @@
 %% \address[label2]{<address>}
 
 \author{Sruthi Venkatanarayanan}
-\author{Jens Dietrich}
 \author{Craig Anslow}
 \author{Patrick Lam}
 
@@ -142,6 +154,10 @@
 
 %% main text
 \input{introduction}
+\input{implementation}
+\input{benchmarks}
+\input{potential-applications}
+\input{conclusion}
 
 %% The Appendices part is started with the command \appendix;
 %% appendix sections are then done as normal sections
@@ -161,22 +177,8 @@
 %% References with BibTeX database:
 
 \bibliographystyle{elsarticle-num}
-\bibliography{<your-bib-database>}
+\bibliography{main}
 
-%% Authors are advised to use a BibTeX database file for their reference list.
-%% The provided style file elsarticle-num.bst formats references in the required Procedia style
-
-%% For references without a BibTeX database:
-
-% \begin{thebibliography}{00}
-
-%% \bibitem must have the following form:
-%%   \bibitem{key}...
-%%
-
-% \bibitem{}
-
-% \end{thebibliography}
 
 \end{document}
 

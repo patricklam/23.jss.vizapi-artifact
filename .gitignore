@@ -3,3 +3,5 @@
 *.spl
 *~
 main.pdf
+*.bbl
+*.blg
