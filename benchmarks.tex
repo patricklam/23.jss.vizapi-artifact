@@ -1,2 +1,42 @@
 \section{Dataset}
-Benchmarks (section 2.3.2 in thesis)
+\label{sec:benchmark}
+Our benchmark set consists of 11 libraries and 90 clients. For libraries, we pick the most popular Maven 
+repositories in different categories such as logging, json parsing and databases. Table~\ref{tab:libs} presents our set of libraries. We measured lines of code (kLOC) using SLOCcount\footnote{\url{https://dwheeler.com/sloccount/}} and number of classes by building libraries and counting resulting \texttt{.class}es. A project uses ServiceLoaders if it has a \texttt{META-INF/services} directory and Java 9 modules if it has a \texttt{module-info.java} file. A library is an OSGi component if it contains a \texttt{MANIFEST.MF} file in its build output\footnote{Some libraries (for example, \emph{connector-j}) create OSGi metadata during the build, so we look for the metadata in the build output, not in the source.}, and this manifest contains \texttt{Export-Package} declarations. 
+
+\begin{table}[h]
+\begin{center}
+\caption{\label{tab:libs}Libraries that we investigated for API usage and mis-usage patterns}
+\begingroup\scriptsize	
+\hspace*{-0.6cm}
+\begin{tabular}{l!{\color{verylightgray}\vrule}cl!{\color{verylightgray}\vrule}rr!{\color{verylightgray}\vrule}ccc}
+& & & non-test &  & Service & Java 9 &  \\
+Library & version & description   & kLOC     & \# classes  &  Loader  & modules & OSGi \\ \arrayrulecolor{verylightgray}\hline
+commons-collections4 & 4.4 & data structure implementations & 28.9 & 524 &&&\checkmark\\
+commons-io & 2.8.0 & IO functionality library & 12.6 & 182& & &\checkmark\\
+joda-time & 2.10.10 & date and time handling library & 28.9 & 247&&& \checkmark \\
+slf4j-api & 1.7.9 & logging library & 1.5 & 28 & & & \checkmark\\
+jsoup & 1.13.1 & HTML parser & 12.5 & 249&&&\checkmark\\
+fastjson & 1.2.76 & json parser/generator & 43.6 & 260 &\checkmark&\\ 
+gson & 2.8.8 & json parser/generator & 14.4&  182 && \checkmark&\checkmark\\
+json & 20210307 & json parser/generator & 11.8 & 27& & \\
+jackson-core & 2.12.3 & json parser/generator & 27.1 & 124 & \checkmark&  \checkmark&\\
+jackson-databind & 2.12.3 & bindings for json parser/generator & 68.2 & 700 & \checkmark & \checkmark&\\ 
+h2 & 1.4.200 & database & 147.2 & 1010 & \checkmark & & \checkmark \\
+\end{tabular}
+\endgroup
+\end{center}
+\end{table}
+
+We use the libraries.io dataset\footnote{\url{https://libraries.io/}} to construct a dependency graph and look for the most used upstream components (highest number of other components depends on [any version of] those), 
+and the top downstream components (clients). We exclude any clients that have less than 10 stars or less than 10 forks on Github.  Apart from this, we also pick a subset of projects from the
+Duets benchmarks~\cite{durieux21}. We exclude components that do not contain unit tests, components that use our chosen library only for testing
+and components that declare the library as a dependency in their POM file, but do not actually use it. Our benchmark set contains both Maven single module and multi-module components.
+
+We executed each of the clients' test suites to collect data about how the clients use all of their dependencies; our data therefore includes not just interactions between our clients and the 11 libraries sampled, but also ``bycatch''---that is, other libraries that are also called by the clients (``also depends on'' in Figure~\ref{fig:workflow}) and the libraries. The total static transitive closure of dependencies of our clients includes 4297 components.
+
+Collecting execution data from programs is more challenging than it seems: downloading software and collecting static numbers is fairly straightforward, but running this software to instrument it involves fixing numerous uninteresting environment glitches which nevertheless block progress---even in the stable environment of a continuous integration system at a large software company, Kerzazi et al~\cite{kerzazi14:_why_do_autom_build_break} found that 17.9\% of builds break, and our context is even more challenging.
+
+While our current benchmark set consists of 101 projects, it is possible to run both our static and dynamic analysis tool and the VizAPI visualization tool on new libraries and clients. However, when either tool is run by a library developer, they are required to provide a specific set of clients that they wish to observe as input to the tools. Libraries.io can be used to find popular clients of libraries---it provides a dependency tree based on projects' packaging information.
+
+We have made our existing data publicly available\footnote{\url{https://zenodo.org/record/6951140}}.
+
