@@ -1,12 +1,63 @@
 \section{Design Decisions}
 \label{sec:design-decisions}
 
-\paragraph{Tools for static analysis}
+Soundiness and the combined static/dynamic approach
+
+\subsection{Static analysis}
+In terms of static analysis, we describe potential approaches going
+from low-level bytecode manipulation through to declaratively declaring
+desired analysis facts.
+
+Javassist, BCEL, ASM
+
+cglib
+
+ByteBuddy
+
+
+DiSL https://link.springer.com/chapter/10.1007/978-3-642-35182-2_18
+
+https://stackoverflow.com/questions/9167436/dynamic-java-bytecode-manipulation-framework-comparison
+
+
 
 SCAM21 submission on mocks
 
-Javassist, Soot, Doop
 
-Class Hierarchy Analysis vs other options
+Drivers
 
-Soundiness and the combined static/dynamic approach
+\paragraph{More sophisticated static analyses}
+Working at the bytecode level imposes unnecessary complexity on
+static analyses. See early Soot papers for details.
+
+Soot provides pointer analysis and call graphs, but it is still
+not that easy to do whole-program analyses: it is up to the user
+to manually propagate information through the program.
+
+Heros implements IFDS/IDE for interprocedural analysis.
+It's more complicated to use than intraprocedural analysis.
+
+As an alternative to Heros, Doop enables its users to state
+declarative facts. It then uses solvers to compute the solution over the
+entire program. The pointer analysis to be used is a parameter.
+
+Runtime of the approaches.
+
+\paragraph{Pointer analysis and callgraphs.}
+Pointer analysis: haven't we solved this problem already? (Hind, 20 years ago).
+
+CHA: simplest possible option
+
+RTA
+
+Demand-driven approaches
+
+Object-sensitive
+
+
+\subsection{Dynamic analysis}
+
+java agent versus JVMTI
+
+Code rewriting
+
