@@ -1,19 +1,77 @@
 \section{Implementation}
-Our VizAPI tool includes two main phases: (1) data extraction and (2) visualization. The data extraction
-phase uses static and dynamic analysis to collect data about client usages of libraries. The visualization
-phase transforms the data into d3 format and makes it available to users.
+Our VizAPI tool includes two main phases: (1) data extraction and (2)
+visualization. The data extraction phase uses static and dynamic
+analysis to collect data about client usages of libraries. The
+visualization phase transforms the extracted data into d3 format and makes it
+available to users.
+
+In this section, we start by describing the design of our VizAPI
+tool. Then, in Section~\ref{sec:design-decisions}, we discuss
+alternatives that we could have chosen, including their advantages and
+drawbacks.  The goal of this paper is to produce an explanation of our
+artifact that will be helpful to other researchers, including in
+particular an exploration of the design space for tools like ours.
+
+\subsection{VizAPI}
+Although it is not the focus of this paper, we describe VizAPI
+in some detail, to enable discussions of its design and implementation.
+The VISSOFT paper~\cite{venkatanarayanan22:_vizap}
+and the first author's MMath thesis~\cite{venkatanarayanan22:_study_lever_api_usage_patter} explain VizAPI in more detail.
+
+We first define the terms ``client'', ``library'' and ``dependency'', which we use throughout this paper. A ``client'' is a software component which directly uses some functionality of an external component, which is the ``library''. Any external component that the ``library'' directly uses is a ``dependency''. 
+
+VizAPI visualizes API usages---from clients to libraries, but also between libraries (including transitive dependencies). The goal of VizAPI is to provide a heuristic for developers considering the impacts of changes to libraries. VizAPI incorporates information from static and dynamic analyses.  We have made VizAPI publicly available\footnote{\url{https://github.com/SruthiVenkat/api-visualization-tool}}.
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[height=4cm,width=7cm]{images/intro-example.png}
+\caption{VizAPI visualization of client C which calls library L, itself dependent on dependency D.}
+\label{fig:example}
+\end{center}
+\end{figure}
+
+Figure~\ref{fig:example} illustrates a VizAPI usage scenario, from the perspective of a client developer worried about breaking changes from the library. It shows plain Java client $C$ (blue nodes) and library $L$ (purple nodes). Library $L$ has packages $L_1$, $L_2$, and $L_3$. $C$ calls into $L_1$ and $L_2$. Internally, within $L$, $L_1$ and $L_2$ call into each other, but not into $L_3$. The VizAPI result, with no edges from $C$ directly to $L_3$, allows a developer to conclude that breaking changes in $L_3$ will not affect $C$. Also, if only $L_3$ uses an external dependency $D$ (yellow node), then $C$ will not need $D$ to be on its classpath.
+
+To do this, VizAPI needs to collect information about dependencies. We provide a few examples of dependencies---enough to give the idea of what VizAPI is looking for, but not an exhaustive list.
+
+\paragraph{Vanilla invocations}
+The standard case is simple. At every invoke instruction in every
+loaded method which transfers control between the client and the
+library, we record a static dependency and add code to dynamically
+record the invoke by incrementing a counter. Note that we
+handle all Java invocation types, including virtual and even dynamic
+invokes. Crossing the client/library boundary includes conventional
+calls from the client to the library as well as callbacks from the
+library to the client.
+
+\paragraph{Dynamic proxies and reflective calls}
+We specially handle invocations of the distinguished method 
+\texttt{java.lang.reflect.Method.invoke()} method used to invoke dynamic proxies and reflective calls, dynamically recording
+details of the calls that we intercept. Statically, our machinery
+does not provide enough information to record this dependency.
+
+\paragraph{Service Loaders} We are particularly interested in bypasses of 
+services that use the \texttt{ServiceLoader} API. Before the instrumentation, we record a list 
+of services and their implementations by statically inspecting files in \texttt{src/main/resources/META-INF/services}.
+With this information, we look for service bypasses which are direct uses of service implementation 
+classes in clients, either through instantiations, casts or reflection. Dynamically, we also intercept calls 
+to method \texttt{load()} in classes with name \texttt{Service*Loader} and record any calls to methods beyond 
+the published interface.
 
 \subsection{Static Analysis}
-\label{sec:static}
+\label{subsec:static}
+Our VizAPI tool integrates data from both static and dynamic analysis.
+It turns out that a simple (rather superficial) static analysis suffices
+for our purposes, and we describe it here. Section~\ref{sec:design-decisions}
+discusses when the use of more sophisticated analyses is appropriate, and
+how to incorporate such analyses in an analysis pipeline.
 
-We use Javassist~\cite{chiba00:_load_struc_reflec_java} to perform
-class hierarchy analysis on clients and create a static call graph. We
-collect data about client usages of libraries by running client test
-suites under instrumentation. The instrumentation records API uses
-which cross client/library boundaries, closely mirroring the API usage
-patterns that we describe in Section~\ref{sec:patterns}.  At the same
-time, we also use Javassist to instrument the code so that we can
-collect dynamic analysis data.   \\
+For VizAPI, we chose Javassist~\cite{chiba00:_load_struc_reflec_java} to
+perform class hierarchy analysis on components and create a static call
+graph. We also use Javassist to instrument the code so that we can
+collect dynamic analysis data; we discuss that part in
+Section~\ref{subsec:dynamic}. Figure~\ref{fig:workflow} summarizes our
+(static) data capture and (dynamic) instrumentation workflow.  \\
 
 \begin{figure*}[h]
  \begin{center}
@@ -53,88 +111,25 @@ collect dynamic analysis data.   \\
  \end{center}
 \end{figure*}
 
-Figure~\ref{fig:workflow} summarizes our instrumentation and
-data capture workflow. We next describe our instrumentation implementation in detail.
+We next describe our instrumentation implementation in detail.
 
-We identify interactions across the client/library boundaries by inspecting JAR files of
-each software component to obtain a list of classes for every component. We associate classes 
-and their members to components based on these lists. Since the JAR files contain source code,
-we ensure that none of the library uses meant solely for unit testing are captured.
+We identify interactions across the client/library boundaries by
+inspecting JAR files of each software component (clients and
+libraries) to obtain a list of classes for every component. We
+associate classes and their members to components based on these
+lists.
 
-\paragraph{Tools for static analysis}
-
-Javassist, Soot, Doop
-
-Class Hierarchy Analysis vs other options
-
-Soundiness and the combined static/dynamic approach
-
-\paragraph{Vanilla invocations}
-The standard case is simple. At every invoke instruction in every
-loaded method which transfers control between the client and the
-library, we add code to record that invoke by incrementing a counter.
-We handle both static and virtual (including special, virtual,
-interface, and dynamic) calls. Crossing the client/library boundary
-includes conventional calls from the client to the library as well as callbacks from the library to the client.  
-
-\paragraph{Field accesses}
-We capture direct (field sets and gets) and reflective (via invocations of
-\texttt{java.lang.reflect.Field.get()} and \texttt{.set()}) field
-accesses.
-
-\paragraph{Dynamic proxies and reflective calls}
-We specially handle invocations of the distinguished method 
-\texttt{java.lang.reflect.Method.invoke()} method used to invoke dynamic proxies and reflective calls, recording
-details of the calls that we intercept. 
-We identify dynamic proxies by checking whether the invocation 
-of \texttt{Method.invoke()} originates from a class that implements 
-\texttt{java.lang.reflect.InvocationHandler}. If so,
-we inspect the call stack to find the caller and callee of 
-\texttt{Method.invoke()} and record the call if it crosses the client/library boundary. 
-All other calls to \texttt{Method.invoke()} are standard reflective calls, 
-and we record the respective callers and callees.
-(We also specifically ignore calls to \texttt{Method.invoke()} made by the Maven surefire plugin
-as it runs tests.)
-% \todo[inline]{When running tests, the Maven surefire plugin uses the invoke method too,
-% which is ignored. Should we talk about that?}
-
-Instrumenting methods also allows us to capture several other library uses,
-as we describe below.
-
-\paragraph{Class usages}
-We capture reflective uses of the \texttt{Class} object by intercepting calls to
-\texttt{java.lang.Class.forName()} and \texttt{java.lang.ClassLoader.loadClass()}.
-
-\paragraph{Service Loaders} We are particularly interested in bypasses of 
-services that use the \texttt{ServiceLoader} API. Before the instrumentation, we record a list 
-of services and their implementations by inspecting files in \texttt{src/main/resources/META-INF/services}.
-With this information, we look for service bypasses which are direct uses of service implementation 
-classes in clients, either through instantiations, casts or reflection. We also intercept calls 
-to method \texttt{load()} in classes with name \texttt{Service*Loader} and record any calls to methods beyond 
-the published interface.
-
-\paragraph{setAccessible()} 
-Java provides the \texttt{setAccessible()} method to allow reflective access to class members despite
-access modifiers. After a call to this method, the program may then (subject to security manager restrictions)
-reflectively access the class member.
-We thus record calls to \texttt{setAccessible()} along with the previous visibility of the class member.
-
-\paragraph{Annotations} 
-We have a quasi-static approach for finding class, field and method
-annotations: we observe all annotations for a class or class member
-when it is loaded, and record cases where a class or member declares an
-annotation from the library of interest. We also record an association
-between the class and its memers' annotations.
-
-\paragraph{Inheritance and interface implementation} At load time,
-we also record information about all superclasses and implemented interfaces
-that cross the library/client barrier.
-
-\paragraph{Instantiations and casts} We also instrument the
-\texttt{NewExpr} and \texttt{Cast} bytecodes to record library/client 
-instantiations and casts.
+Since the JAR files contain source code, we ensure that none of
+the library uses meant solely for unit testing are captured.
+\todo{clarify this: how do we do that?}
 
 \subsection{Dynamic Analysis}
+\label{subsec:dynamic}
+We collect data about client usages of libraries by running
+client test suites under instrumentation. The instrumentation records
+API uses which cross client/library boundaries, closely mirroring the
+API usage patterns that we describe in Section~\ref{sec:patterns}.
+
 We modify the build system of each
 client (Maven) to run its provided tests on instrumented
 code, obtaining dynamic call graphs.
