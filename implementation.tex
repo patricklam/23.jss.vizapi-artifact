@@ -38,11 +38,15 @@ To do this, VizAPI needs to collect information about dependencies. We provide a
 The standard case is simple. At every invoke instruction in every
 loaded method which transfers control between the client and the
 library, we record a static dependency and add code to dynamically
-record the invoke by incrementing a counter. Note that we
-handle all Java invocation types, including virtual and even dynamic
-invokes. Crossing the client/library boundary includes conventional
-calls from the client to the library as well as callbacks from the
-library to the client.
+record the invoke by incrementing a counter just before the invoke
+executes. Note that we handle all Java invocation types, including
+virtual and even dynamic invokes. Crossing the client/library boundary
+includes conventional calls from the client to the library as well as
+callbacks from the library to the client.  Because we instrument
+libraries, we can record both invocation directions.
+
+\todo{I don't actually see the class hierarchy analysis in the code, can
+we talk about where it lives?}
 
 \paragraph{Dynamic proxies and reflective calls}
 We specially handle invocations of the distinguished method 
@@ -111,6 +115,14 @@ Section~\ref{subsec:dynamic}. Figure~\ref{fig:workflow} summarizes our
  \end{center}
 \end{figure*}
 
+\subsection{Dynamic Analysis}
+\label{subsec:dynamic}
+We collect data about client usages of libraries by running
+client test suites under instrumentation. The instrumentation records
+API uses which cross client/library boundaries, closely mirroring the
+API usage patterns that we describe in Section~\ref{sec:patterns}.
+
+
 We next describe our instrumentation implementation in detail.
 
 We identify interactions across the client/library boundaries by
@@ -122,13 +134,6 @@ lists.
 Since the JAR files contain source code, we ensure that none of
 the library uses meant solely for unit testing are captured.
 \todo{clarify this: how do we do that?}
-
-\subsection{Dynamic Analysis}
-\label{subsec:dynamic}
-We collect data about client usages of libraries by running
-client test suites under instrumentation. The instrumentation records
-API uses which cross client/library boundaries, closely mirroring the
-API usage patterns that we describe in Section~\ref{sec:patterns}.
 
 We modify the build system of each
 client (Maven) to run its provided tests on instrumented
