@@ -8,6 +8,13 @@ In terms of static analysis, we describe potential approaches going
 from low-level bytecode manipulation through to declaratively declaring
 desired analysis facts.
 
+At the intraprocedural level, most tools provide access to bytecode
+manipulation. Some tools allow users to supply Java code which is
+then compiled into bytecode. Soot has an intermediate three-address code.
+
+Working at the bytecode level imposes unnecessary complexity on
+static analyses. See early Soot papers for details.
+
 Javassist, BCEL, ASM
 
 cglib
@@ -26,24 +33,8 @@ SCAM21 submission on mocks
 
 Drivers
 
-\paragraph{More sophisticated static analyses}
-Working at the bytecode level imposes unnecessary complexity on
-static analyses. See early Soot papers for details.
-
-Soot provides pointer analysis and call graphs, but it is still
-not that easy to do whole-program analyses: it is up to the user
-to manually propagate information through the program.
-
-Heros implements IFDS/IDE for interprocedural analysis.
-It's more complicated to use than intraprocedural analysis.
-
-As an alternative to Heros, Doop enables its users to state
-declarative facts. It then uses solvers to compute the solution over the
-entire program. The pointer analysis to be used is a parameter.
-
-Runtime of the approaches.
-
 \paragraph{Pointer analysis and callgraphs.}
+
 Pointer analysis: haven't we solved this problem already? (Hind, 20 years ago).
 
 CHA: simplest possible option
@@ -53,6 +44,24 @@ RTA
 Demand-driven approaches
 
 Object-sensitive
+
+Soundiness
+
+\paragraph{Going interprocedural}
+Assuming that we have a call graph available, the next challenge in
+designing a tool is to correctly propagate data interprocedurally.
+Even with Soot's call graph informatoin, it is still not that easy to
+do whole-program analyses: it is up to the user to manually propagate
+information at method invocation sites.
+
+Heros implements IFDS/IDE for interprocedural analysis.
+It's more complicated to use than intraprocedural analysis.
+
+As an alternative to Heros, Doop enables its users to state
+declarative facts. It then uses solvers to compute the solution over the
+entire program. The pointer analysis to be used is a parameter.
+
+Runtime of Soot versus Doop and Heros.
 
 
 \subsection{Dynamic analysis}
