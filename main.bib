@@ -446,9 +446,6 @@ pages = {44–46},
 numpages = 3
 }
 
- 
-
-
 @InProceedings{chiba00:_load_struc_reflec_java,
   author =       {Shigeru Chiba},
   title =        {Load-time Structural Reflection in {Java}},
@@ -458,6 +455,7 @@ numpages = 3
   series =    {LNCS},
   pages =     {313--336},
   publisher = {Springer Verlag}}
+
 
 @Misc{corporation17:_java_platf_modul_system_jsr,
   author =    {{Oracle Corporation}},
@@ -720,4 +718,47 @@ journal = {Commun. ACM},
 month = {Jan},
 pages = {44–46},
 numpages = 3
+}
+
+@inproceedings{bodden11:_tamin_reflec,
+author = {Bodden, Eric and Sewe, Andreas and Sinschek, Jan and Oueslati, Hela and Mezini, Mira},
+title = {Taming Reflection: Aiding Static Analysis in the Presence of Reflection and Custom Class Loaders},
+year = 2011,
+isbn = 9781450304450,
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/1985793.1985827},
+doi = {10.1145/1985793.1985827},
+booktitle = {Proceedings of the 33rd International Conference on Software Engineering},
+pages = {241–250},
+numpages = 10,
+keywords = {reflection, static analysis, tracing, dynamic class loaders, dynamic class loading, native code},
+location = {Waikiki, Honolulu, HI, USA},
+series = {ICSE '11}
+}
+
+@inproceedings{raychev2016learning,
+    author = {Raychev, Veselin and Bielik, Pavol and Vechev, Martin and Krause, Andreas},
+    title = {Learning Programs from Noisy Data},
+    year = 2016,
+    isbn = 9781450335492,
+    publisher = {Association for Computing Machinery},
+    address = {New York, NY, USA},
+    url = {https://doi.org/10.1145/2837614.2837671},
+    doi = {10.1145/2837614.2837671},
+    abstract = {We present a new approach for learning programs from noisy datasets. Our approach is based on two new concepts: a regularized program generator which produces a candidate program based on a small sample of the entire dataset while 
+avoiding overfitting, and a dataset sampler which carefully samples the dataset by leveraging the candidate program's score on that dataset. The two components are connected in a continuous feedback-directed loop. We show how to apply this approac
+h to two settings: one where the dataset has a bound on the noise, and another without a noise bound. The second setting leads to a new way of performing approximate empirical risk minimization on hypotheses classes formed by a discrete search spa
+ce. We then present two new kinds of program synthesizers which target the two noise settings. First, we introduce a novel regularized bitstream synthesizer that successfully generates programs even in the presence of incorrect examples. We show t
+hat the synthesizer can detect errors in the examples while combating overfitting -- a major problem in existing synthesis techniques. We also show how the approach can be used in a setting where the dataset grows dynamically via new examples (e.g
+., provided by a human). Second, we present a novel technique for constructing statistical code completion systems. These are systems trained on massive datasets of open source programs, also known as ``Big Code''. The key idea is to introduce a d
+omain specific language (DSL) over trees and to learn functions in that DSL directly from the dataset. These learned functions then condition the predictions made by the system. This is a flexible and powerful technique which generalizes several e
+xisting works as we no longer need to decide a priori on what the prediction should be conditioned (another benefit is that the learned functions are a natural mechanism for explaining the prediction). As a result, our code completion system surpa
+sses the prediction capabilities of existing, hard-wired systems.},
+    booktitle = {Proceedings of the 43rd Annual ACM SIGPLAN-SIGACT Symposium on Principles of Programming Languages},
+    pages = {761–774},
+    numpages = 14,
+    keywords = {Noisy Data, Big Code, Statistical Code Completion, Anomaly Detection, Regularization, Program Synthesis},
+    location = {St. Petersburg, FL, USA},
+    series = {POPL '16}
 }

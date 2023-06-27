@@ -17,19 +17,75 @@ underapproximations used by typical static analysis in more detail.
 
 On the other hand, dynamic analysis under-approximates possible
 program behaviours: it reports only the behaviour that is induced by
-a particular program input. 
+a particular program input. It completely reports that behaviour, though,
+and sees through constructs that are difficult for static analyses to
+handle soundly. TamiFlex~\cite{bodden11:_tamin_reflec} dynamically captures
+information about, for instance, which classes are loaded at runtime,
+and feeds that back to the static analysis.
+
+VizAPI integrates static and dynamic information. The approach is still not
+sound with respect to all potential executions, and it does not integrate
+dynamic class loading information into the static results, but it does
+make both types of information visible to the user.
 
 \subsection{Static analysis}
-We describe potential static analysis approaches, from low-level
-bytecode manipulation through to declaratively declaring desired
-analysis facts.
+We next describe potential static analysis and transformation
+approaches, from low-level bytecode manipulation through to
+declaratively declaring desired analysis facts. VizAPI extracts static
+facts from the programs under analysis. VizAPI also carries out some
+program transformation so that it can collect dynamic facts.
 
-At the intraprocedural level, most tools provide access to bytecode
-manipulation. Some tools allow users to supply Java code which is
-then compiled into bytecode. Soot has an intermediate three-address code.
+Java bytecode is commonly used by program analysis tools as an input format,
+since it preserves the semantics of the original source code and, unless
+obfuscated, contains source-level entities such as classes and methods,
+with their original names.
 
-Working at the bytecode level imposes unnecessary complexity on
-static analyses. See early Soot papers for details.
+Although source-level information information is present, it can be
+difficult to extract. Local variable names and original code structure
+may not be present; the code structure can be recovered and local
+variable names could be inferred using Big Code techniques similar to
+those used in JavaScript by Raychev et al~\cite{raychev2016learning}.
+
+Bytecode tools provide varying levels of abstraction. We discuss three
+bytecode-level tools here.
+
+The Apache Commons Byte Code Engineering Library\footnote{\url{https://commons.apache.org/proper/commons-bcel/}} (BCEL) is a low-level library that
+provides a very thin abstraction layer to its user. In particular,
+it requires users to manually manage constant pool entries and provides
+verbatim access to stack-based bytecode instructions.
+
+The ASM library\footnote{\url{https://asm.ow2.io/}} provides many of
+the same capabilities as BCEL, but also a somewhat more robust
+abstraction layer which, for instance, manages the constant pool
+itself. In addition to an object-oriented (``tree-based'') API like
+that of BCEL, it also provides an event-based API which trades increased
+performance for decreased flexibility for the user (they must write
+the analysis code in a certain way).
+
+% next two paragraphs are still rough
+We chose to use Javassist~\cite{chiba00:_load_struc_reflec_java}
+for VizAPI. It provides more of an abstraction layer than BCEL (no
+constant pool) but less than ASM (only one API, not two). For our purposes,
+any of the libraries would have worked. (?)
+
+The Soot framework~\cite{lam11:_soot_java} provides more support for
+sophisticated intraprocedural analyses: instead of having to work with
+stack-based bytecode, it provides a three-address code with explicit
+arguments for instructions. Soot can also support program transformation.
+Javassist makes it easier to write code, as long as it's the kind of
+code that you want. ASM requires you to write bytecode. ByteBuddy supports
+generating method bodies by declaring their contents, to some extent.
+
+\paragraph{Run-time code changes.}
+
+
+
+Soot has an intermediate three-address code.
+Some tools allow users to supply Java code which is
+then compiled into bytecode. 
+
+
+ByteBuddy
 
 Javassist, BCEL, ASM
 
