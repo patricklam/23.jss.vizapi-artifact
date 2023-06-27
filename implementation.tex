@@ -135,17 +135,16 @@ We identify interactions across the client/library boundaries by
 inspecting JAR files of each software component (clients and
 libraries) to obtain a list of classes for every component. We
 associate classes and their members to components based on these
-lists.
+lists. We then examine each class and its members and instrument 
+their uses with code that increments counters every time there is an 
+interaction with a different JAR and builds the dynamic call graphs. 
+We do so using Javassist APIs that modify the bytecode.
 
-Since the JAR files contain source code, we ensure that none of
-the library uses meant solely for unit testing are captured.
-\todo{clarify this: how do we do that?}
-
-We modify the build system of each
-client (Maven) to run its provided tests on instrumented
-code, obtaining dynamic call graphs.
-
-\todo{more details on the dynamic call graphs}
+Using Maven, we build JAR files that contain source code only. This ensures that none of the library uses meant solely for unit testing are captured.
+We modify the build system of each client (Maven) to run its provided tests on instrumented code, obtaining dynamic call graphs.
+While the static analysis captures the following patterns: 
+vanilla invocations, field accesses, class usages, setAccessible(), annotations and inheritance information, the dynamic analysis all of those patterns along with reflection,
+dynamic proxies and service loaders. 
 
 We executed each of the clients' test suites to collect data about how the clients use all of their dependencies; our data therefore includes not just interactions between our clients and the 11 libraries sampled, but also ``bycatch''---that is, other libraries that are also called by the clients (``also depends on'' in Figure~\ref{fig:workflow}) and the libraries. The total static transitive closure of dependencies of our clients includes 4297 components.
 
