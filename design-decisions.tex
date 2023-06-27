@@ -1,12 +1,28 @@
 \section{Design Decisions}
 \label{sec:design-decisions}
 
-Soundiness and the combined static/dynamic approach
+Having described VizAPI's implementation, we now broaden our attention
+and discuss possible design alternatives, particularly in terms of toolkits
+that we could have used.
+
+As mentioned in Section~\ref{sec:implementation}, VizAPI presents both
+static and dynamic information. Static analysis will typically present
+over-approximations (e.g. both branches of a conditional might be
+taken), except for under-approximations in special cases like
+reflection and ``eval''. VizAPI makes almost maximally coarse
+over-approximations, for instance by using Class Hierarchy Analysis to
+approximate method calls. The soundiness
+manifesto~\cite{livshits15:_in_defen_sound} discusses the
+underapproximations used by typical static analysis in more detail.
+
+On the other hand, dynamic analysis under-approximates possible
+program behaviours: it reports only the behaviour that is induced by
+a particular program input. 
 
 \subsection{Static analysis}
-In terms of static analysis, we describe potential approaches going
-from low-level bytecode manipulation through to declaratively declaring
-desired analysis facts.
+We describe potential static analysis approaches, from low-level
+bytecode manipulation through to declaratively declaring desired
+analysis facts.
 
 At the intraprocedural level, most tools provide access to bytecode
 manipulation. Some tools allow users to supply Java code which is

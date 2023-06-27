@@ -1,4 +1,5 @@
 \section{Implementation}
+\label{sec:implementation}
 Our VizAPI tool includes two main phases: (1) data extraction and (2)
 visualization. The data extraction phase uses static and dynamic
 analysis to collect data about client usages of libraries. The
@@ -45,8 +46,13 @@ includes conventional calls from the client to the library as well as
 callbacks from the library to the client.  Because we instrument
 libraries, we can record both invocation directions.
 
-\todo{I don't actually see the class hierarchy analysis in the code, can
-we talk about where it lives?}
+Because Class Hierarchy Analysis is so straightforward, we implemented
+it ourselves: when we first read the class files, we record
+inheritance relationships between classes; then, when we re-visit all
+methods, we add an edge between the caller and its potential callees
+(as earlier recorded).  In any case, we need the inheritance
+relationships: when a client extends a library class, that constitutes
+a dependency.
 
 \paragraph{Dynamic proxies and reflective calls}
 We specially handle invocations of the distinguished method 
