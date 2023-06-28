@@ -154,7 +154,9 @@ libraries) to obtain a list of classes for every component. We
 associate classes and their members to components based on these
 lists. 
 
-We first rebuild and instrument the classes. Using Maven, we build JAR
+\todo{where agent}
+
+We first recompile and instrument the classes. Using Maven, we build JAR
 files that contain source code only. This ensures that we do not
 capture library uses meant solely for unit testing.  We recompile
 these source code classes, and then we instrument them using Javassist
