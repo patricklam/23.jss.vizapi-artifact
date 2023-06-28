@@ -14,14 +14,14 @@ artifact that will be helpful to other researchers, including in
 particular an exploration of the design space for tools like ours.
 
 \subsection{VizAPI}
-Although it is not the focus of this paper, we describe VizAPI
-in some detail, to enable discussions of its design and implementation.
+Although it is not the focus of this paper, we briefly describe VizAPI
+to enable discussions of its design and implementation.
 The VISSOFT paper~\cite{venkatanarayanan22:_vizap}
 and the first author's MMath thesis~\cite{venkatanarayanan22:_study_lever_api_usage_patter} explain VizAPI in more detail.
 
-We first define the terms ``client'', ``library'' and ``dependency'', which we use throughout this paper. A ``client'' is a software component which directly uses some functionality of an external component, which is the ``library''. Any external component that the ``library'' directly uses is a ``dependency''. 
+We first define the terms ``client'', ``library'' and ``dependency'', which we use throughout this paper. A ``client'' is a software component which directly uses some functionality of an external component, which is the ``library''. Any external component that the ``library'' directly uses is a ``dependency'' of that library; libraries may also have ``transitive dependencies''.
 
-VizAPI visualizes API usages---from clients to libraries, but also between libraries (including transitive dependencies). The goal of VizAPI is to provide a heuristic for developers considering the impacts of changes to libraries. VizAPI incorporates information from static and dynamic analyses.  We have made VizAPI publicly available\footnote{\url{https://github.com/SruthiVenkat/api-visualization-tool}}.
+VizAPI visualizes API usages---from clients to libraries, but also from libraries to clients and between libraries (including transitive dependencies). The goal of VizAPI is to provide a heuristic for developers considering the impacts of changes to libraries. VizAPI incorporates information from static and dynamic analyses.  We have made VizAPI publicly available\footnote{\url{https://github.com/SruthiVenkat/api-visualization-tool}}.
 
 \begin{figure}[h]
 \begin{center}
@@ -35,44 +35,17 @@ Figure~\ref{fig:example} illustrates a VizAPI usage scenario, from the perspecti
 
 To do this, VizAPI needs to collect information about dependencies. We provide a few examples of dependencies---enough to give the idea of what VizAPI is looking for, but not an exhaustive list.
 
-\paragraph{Vanilla invocations}
-The standard case is simple. At every invoke instruction in every
-loaded method which transfers control between the client and the
-library, we record a static dependency and add code to dynamically
-record the invoke by incrementing a counter just before the invoke
-executes. Note that we handle all Java invocation types, including
-virtual and even dynamic invokes. Crossing the client/library boundary
-includes conventional calls from the client to the library as well as
-callbacks from the library to the client.  Because we instrument
-libraries, we can record both invocation directions.
+\paragraph{Vanilla invocations} The goal here is to capture information about method calls between components. This information can be approximated statically using Class Hierarchy Analysis, as we describe below. Furthermore, it can also be captured precisely at runtime, at least for the invocations that happen on a particular set of executions.
 
-Because Class Hierarchy Analysis is so straightforward, we implemented
-it ourselves: when we first read the class files, we record
-inheritance relationships between classes; then, when we re-visit all
-methods, we add an edge between the caller and its potential callees
-(as earlier recorded).  In any case, we need the inheritance
-relationships: when a client extends a library class, that constitutes
-a dependency.
+\paragraph{Dynamic proxies and reflective calls} We use a dynamic approach for recording these calls to avoid needing to make hopelessly conservative approximations.
 
-\paragraph{Dynamic proxies and reflective calls}
-We specially handle invocations of the distinguished method 
-\texttt{java.lang.reflect.Method.invoke()} method used to invoke dynamic proxies and reflective calls, dynamically recording
-details of the calls that we intercept. Statically, our machinery
-does not provide enough information to record this dependency.
+\paragraph{Service Loaders} This Java API allows Java programs to dynamically load additional code, typically plugins. The plugins would declare a published interface, which we can record statically. We are interested in uses of the published interface as well as dynamic calls that exceed the public interface.
 
-\paragraph{Service Loaders} We are particularly interested in bypasses of 
-services that use the \texttt{ServiceLoader} API. Before the instrumentation, we record a list 
-of services and their implementations by statically inspecting files in \texttt{src/main/resources/META-INF/services}.
-With this information, we look for service bypasses which are direct uses of service implementation 
-classes in clients, either through instantiations, casts or reflection. Dynamically, we also intercept calls 
-to method \texttt{load()} in classes with name \texttt{Service*Loader} and record any calls to methods beyond 
-the published interface.
-
-\subsection{Static Analysis}
+\subsection{Static Analysis/instrumentation}
 \label{subsec:static}
 Our VizAPI tool integrates data from both static and dynamic analysis.
 It turns out that a simple (rather superficial) static analysis suffices
-for our purposes, and we describe it here. Section~\ref{sec:design-decisions}
+for our purposes, and we describe parts of it here. Section~\ref{sec:design-decisions}
 discusses when the use of more sophisticated analyses is appropriate, and
 how to incorporate such analyses in an analysis pipeline.
 
@@ -121,32 +94,84 @@ Section~\ref{subsec:dynamic}. Figure~\ref{fig:workflow} summarizes our
  \end{center}
 \end{figure*}
 
+\paragraph{Vanilla invocations}
+The standard case is simple. At every invoke instruction in every
+loaded method which transfers control between the client and the
+library, we record a static dependency (using a Class Hierarchy
+Analysis callgraph that we compute) and add code to dynamically record
+the invoke by incrementing a counter just before the invoke
+executes. Note that we handle all Java invocation types, including
+virtual and even dynamic invokes. Crossing the client/library boundary
+includes conventional calls from the client to the library as well as
+callbacks from the library to the client.  Because we instrument
+libraries, we can record both invocation directions.
+
+Since Class Hierarchy Analysis is so straightforward, we implemented
+it ourselves: when we first read the class files, we record
+inheritance relationships between classes; then, when we re-visit all
+methods, we add an edge between the caller and its potential callees
+(as earlier recorded).  In any case, we need the inheritance
+relationships: when a client extends a library class, that constitutes
+a different kind of dependency, which we also record.
+
+\paragraph{Service Loaders} We are particularly interested in bypasses of 
+services that use the \texttt{ServiceLoader} API. Before the instrumentation, we record a list 
+of services and their implementations by statically inspecting files in \texttt{src/main/resources/META-INF/services}. This gives a static list of dependencies; anything beyond this list that we observe dynamically would be a service bypass.
+
 \subsection{Dynamic Analysis}
 \label{subsec:dynamic}
-We collect data about client usages of libraries by running
-client test suites under instrumentation. The instrumentation records
-API uses which cross client/library boundaries, closely mirroring the
-API usage patterns that we describe in Section~\ref{sec:patterns}.
+We collect data about client usages of libraries by running client
+test suites under instrumentation. The instrumentation records API
+uses which cross client/library boundaries, closely mirroring the API
+usage patterns
+in~\cite{venkatanarayanan22:_study_lever_api_usage_patter}.. We first
+describe how we capture specific dependencies between components, and
+then discuss our instumentation implementation.
 
+\paragraph{Vanilla invocations} The code that we inserted during the
+static analysis/instrumentation phase keeps track of invocation counters
+and writes them out upon program termination.
 
-We next describe our instrumentation implementation in detail.
+\paragraph{Dynamic proxies and reflective calls}
+We specially handle invocations of
+\texttt{java.lang.reflect.Method.invoke()}, a distinguished method
+used to invoke dynamic proxies and reflective calls, dynamically
+recording details of the calls that we intercept. It is possible for
+static analyses to resolve a subset of such calls using clever
+techniques. Our machinery does not provide enough information to
+statically resolve this dependency, but we have full visibility into
+such calls dynamically.
 
+\paragraph{Service Loaders} In the dynamic phase, we use the statically recorded information to dynamically detect service bypasses which are direct uses of service implementation 
+classes in clients, either through instantiations, casts or reflection. To do so, we intercept calls 
+to method \texttt{load()} in classes with name \texttt{Service*Loader} and record any calls to methods beyond 
+the published interface that we have recorded statically.
+
+\paragraph{Instrumentation implementation}
 We identify interactions across the client/library boundaries by
 inspecting JAR files of each software component (clients and
 libraries) to obtain a list of classes for every component. We
 associate classes and their members to components based on these
-lists. We then examine each class and its members and instrument 
-their uses with code that increments counters every time there is an 
-interaction with a different JAR and builds the dynamic call graphs. 
-We do so using Javassist APIs that modify the bytecode.
+lists. 
 
-Using Maven, we build JAR files that contain source code only. This ensures that none of the library uses meant solely for unit testing are captured.
-We modify the build system of each client (Maven) to run its provided tests on instrumented code, obtaining dynamic call graphs.
-While the static analysis captures the following patterns: 
-vanilla invocations, field accesses, class usages, setAccessible(), annotations and inheritance information, the dynamic analysis all of those patterns along with reflection,
-dynamic proxies and service loaders. 
+We first rebuild and instrument the classes. Using Maven, we build JAR
+files that contain source code only. This ensures that we do not
+capture library uses meant solely for unit testing.  We recompile
+these source code classes, and then we instrument them using Javassist
+APIs that modify the bytecode. We examine each class and its members,
+and insert instrumention that increments counters every time there is
+an interaction with a different JAR. The instrumentation also builds
+dynamic call graphs.
 
-We executed each of the clients' test suites to collect data about how the clients use all of their dependencies; our data therefore includes not just interactions between our clients and the 11 libraries sampled, but also ``bycatch''---that is, other libraries that are also called by the clients (``also depends on'' in Figure~\ref{fig:workflow}) and the libraries. The total static transitive closure of dependencies of our clients includes 4297 components.
+In the dynamic analysis phase, we modify the build system of each
+client (Maven) to run its provided tests on instrumented code,
+obtaining dynamic call graphs.  The static analysis captures the
+following patterns: vanilla invocations, field accesses, class usages,
+setAccessible(), annotations and inheritance information. The dynamic
+analysis captures all dynamic uses of those patterns and additionally
+reflection, dynamic proxies and service loader bypasses.
+
+Because we executed each of the clients' test suites to collect data about how the clients use all of their dependencies, our data therefore includes not just interactions between our clients and the 11 libraries sampled, but also ``bycatch''---that is, other libraries that are also called by the clients (``also depends on'' in Figure~\ref{fig:workflow}) and the libraries. The total static transitive closure of dependencies of our clients includes 4297 components.
 
 Collecting execution data from programs is more challenging than it seems: downloading software and collecting static numbers is fairly straightforward, but running this software to instrument it involves fixing numerous uninteresting environment glitches which nevertheless block progress---even in the stable environment of a continuous integration system at a large software company, Kerzazi et al~\cite{kerzazi14:_why_do_autom_build_break} found that 17.9\% of builds break, and our context is even more challenging.
 
@@ -177,11 +202,11 @@ While our current benchmark set consists of 101 projects, it is possible to run 
 \end{figure*}
 
 
-Once we have generated data from our tool that runs the static and dynamic analyses, we use a modified version
+Once we have generated static and dynamic analysis data using our tool, we use a modified version
 of the d3graph\footnote{\url{https://pypi.org/project/d3graph/}} library in Python to generate a d3js\footnote{\url{https://d3js.org/}}
 visualization. The modifications that we made to the d3graph  library in Python in Python include multiple styling changes (for example, changing node styles based on whether it is a client, library or dependency),
-legends and a toggle to show all package names. 
-The graphs in Figures~\ref{fig:example}, \ref{fig:usagescenario1} and \ref{fig:usagescenario2} are examples of graphs produced by VizAPI.
+legends, and a toggle to show all package names. 
+The graphs in Figures~\ref{fig:example}, \ref{fig:usagescenario1}, and \ref{fig:usagescenario2} are examples of graphs produced by VizAPI.
 
 VizAPI graphs are force-directed graphs based on the frequency of
 interactions between different software components.  Each node is a
