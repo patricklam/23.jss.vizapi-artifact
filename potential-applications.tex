@@ -1,11 +1,55 @@
 \section{Potential Applications}
-Potential Applications:
-Security: 
-Identify illegal accesses and abnormal usage
-Identify propagated vulnerabilities from dependencies
-Developer experience: analyze dataset for improving experience of library users
-Help library developers identify which features to focus efforts on
-Predict good choices of libraries based on client use case
-Analyze library version usage
-How does static and dynamic usage differ?
-(other ML applications of the data??)
+\label{sec:potential-applications}
+While the main contribution of this paper is to share our experiences
+about writing program analysis and transformation tools, we also
+briefly outline some potential applications of VizAPI itself.
+
+In our original paper, we discussed how 1) library developers could
+use VizAPI to guide their API maintenance decisions---based on actual
+usage, which APIs were best prunable or modifiable, and where good
+refactoring candidates might exist, thus helping library users'
+experiences; and 2) client developers could use VizAPI to guide
+decisions about when to upgrade their dependencies while avoiding
+upgrade pains.
+
+An extension of VizAPI could help with the problem of library selection. In
+Section~\ref{sec:design-decisions} we discussed considerations for library
+selection for VizAPI-like tools. An extension to VizAPI could also help
+general developers pick which libraries would be helpful for their
+needs---''projects like you used libraries X and Y''. In particular,
+VizAPI can help surface the specific packages that similar projects used,
+helping developers understand the functionalities of candidate libraries.
+
+\todo{what do you mean analyze library version usage?}
+
+Another area of potential applications would be security; we already
+identify {\texttt ServiceLoader} bypasses, and could also identify
+other suspicious patterns. VizAPI would be particularly good for
+identifying cases where vulnerabilities from dependencies do and do
+not propagate; lack of an edge from a vulnerability-containing source
+to a sink in a client would be a hint that the client would not be
+vulnerable to the vulnerability. Unexpected edges could also indicate
+abnormal behaviours that should be further investigated.
+VizAPI could detect violations of
+security policies, though it is admittedly not the best tool for that.
+
+More fundamentally, we believe that the way VizAPI combines static and
+dynamic information could be useful in understanding the limitations
+of static and dynamic approaches in practice. In
+Section~\ref{sec:design-decisions}, we talked about conceptual
+limitations of both approaches. Sui et
+al~\cite{sui20:_recal_static_call_graph_const_pract} have investigated
+the recall of static call graph construction in practice, but further
+work in this area would help in terms of having confidence in the
+analysis results that we compute and rely on.
+
+%% Potential Applications:
+%% Security: 
+%% Identify illegal accesses and abnormal usage
+%% Identify propagated vulnerabilities from dependencies
+%% Developer experience: analyze dataset for improving experience of library users
+%% Help library developers identify which features to focus efforts on
+%% Predict good choices of libraries based on client use case
+%% Analyze library version usage
+%% How does static and dynamic usage differ?
+%% (other ML applications of the data??)
