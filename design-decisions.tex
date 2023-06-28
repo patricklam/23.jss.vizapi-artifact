@@ -23,118 +23,168 @@ handle soundly. TamiFlex~\cite{bodden11:_tamin_reflec} dynamically captures
 information about, for instance, which classes are loaded at runtime,
 and feeds that back to the static analysis.
 
-VizAPI integrates static and dynamic information. The approach is still not
-sound with respect to all potential executions, and it does not integrate
-dynamic class loading information into the static results, but it does
-make both types of information visible to the user.
+VizAPI integrates static and dynamic information. The approach is
+still not sound with respect to all potential executions, and it does
+not integrate dynamic class loading information into the static
+results, but it does make both types of information (as directly
+captured by the tool) visible to the user.
 
-\subsection{Static analysis}
+\subsection{Static analysis and program transformation}
 We next describe potential static analysis and transformation
 approaches, from low-level bytecode manipulation through to
 declaratively declaring desired analysis facts. VizAPI extracts static
 facts from the programs under analysis. VizAPI also carries out some
 program transformation so that it can collect dynamic facts.
 
-Java bytecode is commonly used by program analysis tools as an input format,
-since it preserves the semantics of the original source code and, unless
-obfuscated, contains source-level entities such as classes and methods,
-with their original names.
+Java bytecode is commonly used by program analysis tools as an input
+format, since it is widely available and yet preserves the semantics
+of the original source code. Unless obfuscated, it contains some
+source-level entities such as classes and methods, with their original
+names.
 
-Although source-level information information is present, it can be
-difficult to extract. Local variable names and original code structure
-may not be present; the code structure can be recovered and local
-variable names could be inferred using Big Code techniques similar to
-those used in JavaScript by Raychev et al~\cite{raychev2016learning}.
+Although some source-level information information is present, it is
+not complete. Original code structure (e.g. structured Abstract Syntax
+Tree-level source-level loops rather than control-flow graphs) and
+local variable names may not be present. Hoever, the code structure
+can be recovered, and local variable names can be inferred using Big
+Code techniques similar to those used for JavaScript by Raychev et
+al~\cite{raychev2016learning}.
 
 Bytecode tools provide varying levels of abstraction. We discuss three
-bytecode-level tools here.
+bytecode-level tools here, first from the perspective of fact extraction
+and then from that of code manipulation and creation.
 
+\paragraph{Low-level analyses}
 The Apache Commons Byte Code Engineering Library\footnote{\url{https://commons.apache.org/proper/commons-bcel/}} (BCEL) is a low-level library that
 provides a very thin abstraction layer to its user. In particular,
 it requires users to manually manage constant pool entries and provides
-verbatim access to stack-based bytecode instructions.
+verbatim access to stack-based bytecode instructions. In that sense,
+users need to re-invent the wheel to use it.
 
 The ASM library\footnote{\url{https://asm.ow2.io/}} provides many of
-the same capabilities as BCEL, but also a somewhat more robust
-abstraction layer which, for instance, manages the constant pool
+the same capabilities as BCEL, but also a more robust
+abstraction layer. For example, ASM manages the constant pool
 itself. In addition to an object-oriented (``tree-based'') API like
 that of BCEL, it also provides an event-based API which trades increased
 performance for decreased flexibility for the user (they must write
 the analysis code in a certain way).
 
-% next two paragraphs are still rough
-We chose to use Javassist~\cite{chiba00:_load_struc_reflec_java}
+We chose to use
+Javassist\footnote{\url{https://www.javassist.org/}}~\cite{chiba00:_load_struc_reflec_java}
 for VizAPI. It provides more of an abstraction layer than BCEL (no
-constant pool) but less than ASM (only one API, not two). For our purposes,
-any of the libraries would have worked. (?)
+constant pool) but fewer abstractions than ASM (only one API, not
+two). For our purposes, any of the libraries would have
+worked, though BCEL would have required more effort to use. \todo{are we sure?}
 
-The Soot framework~\cite{lam11:_soot_java} provides more support for
+At a higher (non-bytecode) level, the Soot
+framework~\cite{lam11:_soot_java} provides more support for
 sophisticated intraprocedural analyses: instead of having to work with
-stack-based bytecode, it provides a three-address code with explicit
-arguments for instructions. Soot can also support program transformation.
-Javassist makes it easier to write code, as long as it's the kind of
-code that you want. ASM requires you to write bytecode. ByteBuddy supports
-generating method bodies by declaring their contents, to some extent.
+stack-based bytecode, it transforms the input bytecode into a typed
+three-address code, with explicit arguments for instructions. Soot
+also provides a framework for writing intraprocedural dataflow
+analyses.  At the intraprocedural level, because of the three-address
+code and the dataflow analysis framework, writing a sophisticated
+analysis is far easier in Soot than in bytecode-level libraries. On
+the other hand, transforming the code to three-address code involves
+more computational overhead.
 
-\paragraph{Run-time code changes.}
+To provide a concrete example, it is relatively easy to detect method
+invocations in all of these frameworks. It is more difficult to, for
+instance, detect method invocations with constant parameters, because
+the analysis has to reason about the stack contents at the invocation
+site. Soot's three-address code hides the stack from the user. In VizAPI's
+case, we only need to detect the method invocation, which is easy
+with any framework.
 
+\paragraph{Low-level transformation}
+While VizAPI's use case includes separate transformation and execution
+phases, some tools transform code on-the-fly. All of BCEL, ASM,
+and Javassist allow their users to transform code just before executing it,
+in the same Virtual Machine. Soot was not designed to support on-the-fly
+transformations.
 
+In terms of generating code, the frameworks vary in their API support.
+ASM and BCEL provide APIs that require the user to specify the exact
+bytecode instructions to be used. Soot allows the user to provide
+three-address code instructions by (somewhat awkwardly) constructing
+them through its API. Javassist provides a ``simple Java compiler''
+which can compile some code fragments into bytecode; the compiler does
+not support all Java constructs.  The ByteBuddy
+toolkit\footnote{\url{https://bytebuddy.net/}} builds on ASM but
+supports a more declarative way of specifying code, e.g. ``create a
+method that returns X''.
 
-Soot has an intermediate three-address code.
-Some tools allow users to supply Java code which is
-then compiled into bytecode. 
+\paragraph{Interprocedural considerations}
+More sophisticated static analysis can benefit from interprocedural
+information. For instance, it is useful to know about possible
+definition points for a local variable, even when that variable
+was assigned from a method parameter.
 
+Unfortunately, in Java, precise interprocedural analysis requires a
+call graph and pointer analysis information, and, as pointed out by
+Lhot\'ak, call graphs and pointer analysis information must be
+computed in tandem. Getting more precise results than Class Hierarchy
+Analysis or, perhaps, Rapid Type
+Analysis~\cite{bacon96:_fast_static_analy_c_virtual_funct_calls},
+requires significant computation, and most analysis users would
+benefit from using an off-the-shelf implementation. Soot's SPARK
+toolkit is still used today, and
+Doop~\cite{bravenboer09:_stric_declar_specif_sophis_point_analy}
+provides more sophisticated options, which we discuss shortly.
 
-ByteBuddy
-
-Javassist, BCEL, ASM
-
-cglib
-
-ByteBuddy
-
-
-%DiSL https://link.springer.com/chapter/10.1007/978-3-642-35182-2_18
-
-https://stackoverflow.com/questions/9167436/dynamic-java-bytecode-manipulation-framework-comparison
-
-
-
-SCAM21 submission on mocks
-
-
-Drivers
-
-\paragraph{Pointer analysis and callgraphs.}
-
-Pointer analysis: haven't we solved this problem already? (Hind, 20 years ago).
-
-CHA: simplest possible option
-
-RTA
-
-Demand-driven approaches
-
-Object-sensitive
-
-Soundiness
-
-\paragraph{Going interprocedural}
 Assuming that we have a call graph available, the next challenge in
 designing a tool is to correctly propagate data interprocedurally.
-Even with Soot's call graph informatoin, it is still not that easy to
+Even with Soot's call graph information, it is still not that easy to
 do whole-program analyses: it is up to the user to manually propagate
 information at method invocation sites.
 
-Heros implements IFDS/IDE for interprocedural analysis.
-It's more complicated to use than intraprocedural analysis.
+Heros~\cite{bodden12:_inter_proced_data_flow_analy} implements the
+IFDS/IDE framework for interprocedural analysis of Java code. Being
+interprocedural, it is more complicated to use than the dataflow analysis
+framework built into Soot.
 
-As an alternative to Heros, Doop enables its users to state
-declarative facts. It then uses solvers to compute the solution over the
-entire program. The pointer analysis to be used is a parameter.
+To our knowledge, all call graph implementations for Java require
+minutes of startup time, even if the call graph computation itself
+could be relatively fast. Such analyses would not be appropriate for
+use at runtime. (But, any runtime analysis could use dynamic
+information and could roll back unsound assumptions that it might have
+made).
 
-Runtime of Soot versus Doop and Heros.
+Also, note that these interprocedural analyses need to know about
+program entry points.  For an application with a \texttt{main()}
+function, this is straightforward.  For Web middleware or for a
+library, this is more complicated, and the user will need to specify
+entry points. VizAPI's test-based dynamic approach essentially uses
+all test cases as potential entry points, and it is relatively
+straightforward to generate a driver that invokes all test cases.
 
+\paragraph{Declarative approaches}
+So far, we have discussed analysis and transformation approaches that have
+been primarily imperative, with ByteBuddy a minor exception. By contrast,
+declarative approaches like Doop are surprisingly powerful and concise.
+In Doop's declarative approach, it suffices to declare the rules that
+define the analysis. For instance, this utility rule relates methods
+that are the same except that they have different declaring types:
+
+\begin{lstlisting}
+.decl SameMethodExceptDeclaringType(m:Method, m0:Method)
+SameMethodExceptDeclaringType(m, m0) :-
+  Method_SimpleName(m, n),
+  Method_SimpleName(m0, n),
+  Method_Descriptor(m, d),
+  Method_Descriptor(m0, d).
+\end{lstlisting}
+
+One challenge of using Doop is that it is not obvious to find
+the relations that Doop provides to users; the documentation is
+somewhat sparse.
+
+In any case, Doop reads the input program and the analysis definition,
+computes necessary pointer and callgraph information, and feeds the
+facts to the Soufflé Datalog solver. It is fairly simple to read out the
+Doop results. Doop does not support program transformation and it would
+be challenging to apply Doop results to drive transformations. Doop also
+has substantial runtime overhead.
 
 \subsection{Dynamic analysis}
 

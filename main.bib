@@ -728,19 +728,77 @@ series = {ICSE '11}
     address = {New York, NY, USA},
     url = {https://doi.org/10.1145/2837614.2837671},
     doi = {10.1145/2837614.2837671},
-    abstract = {We present a new approach for learning programs from noisy datasets. Our approach is based on two new concepts: a regularized program generator which produces a candidate program based on a small sample of the entire dataset while 
-avoiding overfitting, and a dataset sampler which carefully samples the dataset by leveraging the candidate program's score on that dataset. The two components are connected in a continuous feedback-directed loop. We show how to apply this approac
-h to two settings: one where the dataset has a bound on the noise, and another without a noise bound. The second setting leads to a new way of performing approximate empirical risk minimization on hypotheses classes formed by a discrete search spa
-ce. We then present two new kinds of program synthesizers which target the two noise settings. First, we introduce a novel regularized bitstream synthesizer that successfully generates programs even in the presence of incorrect examples. We show t
-hat the synthesizer can detect errors in the examples while combating overfitting -- a major problem in existing synthesis techniques. We also show how the approach can be used in a setting where the dataset grows dynamically via new examples (e.g
-., provided by a human). Second, we present a novel technique for constructing statistical code completion systems. These are systems trained on massive datasets of open source programs, also known as ``Big Code''. The key idea is to introduce a d
-omain specific language (DSL) over trees and to learn functions in that DSL directly from the dataset. These learned functions then condition the predictions made by the system. This is a flexible and powerful technique which generalizes several e
-xisting works as we no longer need to decide a priori on what the prediction should be conditioned (another benefit is that the learned functions are a natural mechanism for explaining the prediction). As a result, our code completion system surpa
-sses the prediction capabilities of existing, hard-wired systems.},
     booktitle = {Proceedings of the 43rd Annual ACM SIGPLAN-SIGACT Symposium on Principles of Programming Languages},
     pages = {761–774},
     numpages = 14,
     keywords = {Noisy Data, Big Code, Statistical Code Completion, Anomaly Detection, Regularization, Program Synthesis},
     location = {St. Petersburg, FL, USA},
     series = {POPL '16}
+}
+
+@MastersThesis{lhot02,
+  author = "Ond\v{r}ej Lhot\'ak",
+  title = "Spark: A flexible points-to analysis framework for {Java}",
+  school = "McGill University",
+  year = "2002",
+  month = "December"
+}
+
+@inproceedings{10.1145/236337.236371,
+author = {Bacon, David F. and Sweeney, Peter F.},
+title = {Fast Static Analysis of C++ Virtual Function Calls},
+year = {1996},
+isbn = {089791788X},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/236337.236371},
+doi = {10.1145/236337.236371},
+abstract = {Virtual functions make code easier for programmers to reuse but also make it harder for compilers to analyze. We investigate the ability of three static analysis algorithms to improve C++ programs by resolving virtual function calls, thereby reducing compiled code size and reducing program complexity so as to improve both human and automated program understanding and analysis. In measurements of seven programs of significant size (5000 to 20000 lines of code each) we found that on average the most precise of the three algorithms resolved 71% of the virtual function calls and reduced compiled code size by 25%. This algorithm is very fast: it analyzes 3300 source lines per second on an 80 MHz PowerPC 601. Because of its accuracy and speed, this algorithm is an excellent candidate for inclusion in production C++ compilers.},
+booktitle = {Proceedings of the 11th ACM SIGPLAN Conference on Object-Oriented Programming, Systems, Languages, and Applications},
+pages = {324–341},
+numpages = {18},
+location = {San Jose, California, USA},
+series = {OOPSLA '96}
+}
+
+@InProceedings{bacon96:_fast_static_analy_c_virtual_funct_calls,
+  author = 	 {Bacon, David F. and Sweeney, Peter F.},
+  title = 	 {Fast Static Analysis of {C++} Virtual Function Calls},
+  booktitle = {OOPSLA},
+  year = 	 1996,
+  pages = 	 {324--341}}
+
+
+@inproceedings{bravenboer09:_stric_declar_specif_sophis_point_analy,
+author = {Bravenboer, Martin and Smaragdakis, Yannis},
+title = {Strictly Declarative Specification of Sophisticated Points-to Analyses},
+year = 2009,
+isbn = 9781605587660,
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/1640089.1640108},
+doi = {10.1145/1640089.1640108},
+booktitle = {Proceedings of the 24th ACM SIGPLAN Conference on Object Oriented Programming Systems Languages and Applications},
+pages = {243–262},
+numpages = 20,
+keywords = {DOOP, points-to analysis, datalog, bdds, declarative},
+location = {Orlando, Florida, USA},
+series = {OOPSLA '09}
+}
+
+@inproceedings{bodden12:_inter_proced_data_flow_analy,
+author = {Bodden, Eric},
+title = {Inter-Procedural Data-Flow Analysis with {IFDS}/{IDE} and {Soot}},
+year = 2012,
+isbn = 9781450314909,
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/2259051.2259052},
+doi = {10.1145/2259051.2259052},
+booktitle = {Proceedings of the ACM SIGPLAN International Workshop on State of the Art in Java Program Analysis},
+pages = {3–8},
+numpages = 6,
+keywords = {flow-sensitive analysis, IFDS, IDE, inter-procedural static analysis},
+location = {Beijing, China},
+series = {SOAP '12}
 }
