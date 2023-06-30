@@ -133,7 +133,7 @@
 %\dochead{}
 %% Use \dochead if there is an article header, e.g. \dochead{Short communication}
 
-  \title{Design and implementation of the VizAPI tool: performing static and dynamic analysis of Java plus visualization (case study)}
+  \title{Design and implementation of the VizAPI tool: a case study for static and dynamic analysis of Java plus visualization}
 
 %  Design and implementation of the VizAPI tool: s
   
@@ -149,10 +149,17 @@
 \address{}
 
 \begin{abstract}
-%% Text of abstract
+  The VizAPI tool shows visualizations that include both static and dynamic interactions between clients, the libraries they use, and those libraries’ transitive dependencies (as long as the components are in Java). Client developers can use VizAPI to answer a query about upstream code: will their code be affected by breaking changes in library APIs? Or, library developers can use VizAPI to find out about downstream code: which APIs in their source code are commonly used by clients?
+
+In this paper, we describe the design and implementation of VizAPI, including our approach to static and dynamic analysis using the Javassist library. We focus on artifact-level issues: to help future program analysis tool developers, we discuss viable alternative libraries that we could have used to implement this tool. We then explain how we collected a dataset for VizAPI consisting of 11 libraries and 90 clients, transitively including 4297 components in all. Finally, we discuss potential future uses of VizAPI.
 \end{abstract}
 
 \begin{keyword}
+static program analysis \sep
+dynamic program analysis \sep
+API usage \sep
+software evolution \sep
+software maintenance
 %% keywords here, in the form: keyword \sep keyword
 
 %% MSC codes here, in the form: \MSC code \sep code
@@ -174,7 +181,6 @@
 \input{benchmarks}
 %\input{results}
 \input{potential-applications}
-\input{related}
 \input{conclusion}
 
 %% The Appendices part is started with the command \appendix;

@@ -5,6 +5,14 @@ Having described VizAPI's implementation, we now broaden our attention
 and discuss possible design alternatives, particularly in terms of toolkits
 that we could have used.
 
+VizAPI works on Java bytecode. We believe that Java is a good choice
+because the ecosystem of Java code available on the
+Internet is vast, and Java bytecode is amenable to analysis. 
+npm also has a lively ecosystem, but JavaScript is much harder to
+analyze than Java, in part because it is much more dynamic. It is plausible
+to us that WebAssembly will take over much of Java's niche in the medium-term
+future, and it is also amenable to analysis.
+
 As mentioned in Section~\ref{sec:implementation}, VizAPI presents both
 static and dynamic information. Static analysis will typically present
 over-approximations (e.g. both branches of a conditional might be
@@ -26,7 +34,7 @@ and feeds that back to the static analysis.
 VizAPI integrates static and dynamic information. The approach is
 still not sound with respect to all potential executions, and it does
 not integrate dynamic class loading information into the static
-results, but it does make both types of information (as directly
+results, but it does make both types of information (as 
 captured by the tool) visible to the user.
 
 \subsection{Static analysis and program transformation}
@@ -45,7 +53,7 @@ names.
 Although some source-level information information is present, it is
 not complete. Original code structure (e.g. structured Abstract Syntax
 Tree-level source-level loops rather than control-flow graphs) and
-local variable names may not be present. Hoever, the code structure
+local variable names may not be present. However, the code structure
 can be recovered, and local variable names can be inferred using Big
 Code techniques similar to those used for JavaScript by Raychev et
 al~\cite{raychev2016learning}.
@@ -56,18 +64,18 @@ and then from that of code manipulation and creation.
 
 \paragraph{Low-level analyses}
 The Apache Commons Byte Code Engineering Library\footnote{\url{https://commons.apache.org/proper/commons-bcel/}} (BCEL) is a low-level library that
-provides a very thin abstraction layer to its user. In particular,
+provides a very thin abstraction layer to its user. For instance,
 it requires users to manually manage constant pool entries and provides
 verbatim access to stack-based bytecode instructions. In that sense,
-users need to re-invent the wheel to use it.
+users need to re-invent the wheel to extract higher-level information.
 
 The ASM library\footnote{\url{https://asm.ow2.io/}} provides many of
 the same capabilities as BCEL, but also a more robust
-abstraction layer. For example, ASM manages the constant pool
+abstraction layer; e.g. ASM manages the constant pool
 itself. In addition to an object-oriented (``tree-based'') API like
 that of BCEL, it also provides an event-based API which trades increased
 performance for decreased flexibility for the user (they must write
-the analysis code in a certain way).
+their analysis code in a certain way).
 
 We chose to use
 Javassist\footnote{\url{https://www.javassist.org/}}~\cite{chiba00:_load_struc_reflec_java}
@@ -118,7 +126,7 @@ method that returns X''.
 More sophisticated static analysis can benefit from interprocedural
 information. For instance, it is useful to know about possible
 definition points for a local variable, even when that variable
-was assigned from a method parameter.
+was assigned from a method parameter and ultimately another method.
 
 Unfortunately, in Java, precise interprocedural analysis requires a
 call graph and pointer analysis information, and, as pointed out by
@@ -128,7 +136,7 @@ Analysis or, perhaps, Rapid Type
 Analysis~\cite{bacon96:_fast_static_analy_c_virtual_funct_calls},
 requires significant computation, and most analysis users would
 benefit from using an off-the-shelf implementation. Soot's SPARK
-toolkit is still used today, and
+toolkit~\cite{lhot02} is still used today, and
 Doop~\cite{bravenboer09:_stric_declar_specif_sophis_point_analy}
 provides more sophisticated options, which we discuss shortly.
 
@@ -141,14 +149,16 @@ information at method invocation sites.
 Heros~\cite{bodden12:_inter_proced_data_flow_analy} implements the
 IFDS/IDE framework for interprocedural analysis of Java code. Being
 interprocedural, it is more complicated to use than the dataflow analysis
-framework built into Soot.
+framework built into Soot. However, it provides a lot of scaffolding
+that a user would otherwise have to create; the user can focus on the
+essentials of the analysis.
 
 To our knowledge, all call graph implementations for Java require
 minutes of startup time, even if the call graph computation itself
 could be relatively fast. Such analyses would not be appropriate for
-use at runtime. (But, any runtime analysis could use dynamic
-information and could roll back unsound assumptions that it might have
-made).
+use at runtime. (But, any runtime analysis could instead use
+easy-to-collect dynamic information and could roll back unsound
+assumptions that it might have made).
 
 Also, note that these interprocedural analyses need to know about
 program entry points.  For an application with a \texttt{main()}
@@ -164,7 +174,7 @@ been primarily imperative, with ByteBuddy a minor exception. By contrast,
 declarative approaches like Doop are surprisingly powerful and concise.
 In Doop's declarative approach, it suffices to declare the rules that
 define the analysis. For instance, this utility rule relates methods
-that are the same except that they have different declaring types:
+that have the same name and descriptor but have different declaring types:
 
 \begin{lstlisting}
 .decl SameMethodExceptDeclaringType(m:Method, m0:Method)
@@ -184,7 +194,7 @@ computes necessary pointer and callgraph information, and feeds the
 facts to the Soufflé Datalog solver. It is fairly simple to read out the
 Doop results. Doop does not support program transformation and it would
 be challenging to apply Doop results to drive transformations. Doop also
-has substantial runtime overhead.
+has substantial runtime cost.
 
 \subsection{Dynamic analysis}
 As discussed in Section~\ref{subsec:static}, VizAPI uses Javassist
@@ -193,3 +203,21 @@ dynamic data.
 
 java agent versus JVMTI
 
+\subsection{Visualization}
+Although GraphViz~\footnote{\url{https://graphviz.org/}} is the dominant
+free graph layout software, we chose to use d3graph to present our graphs.
+It is still a mostly-static representation of a single graph. However,
+d3graph renders to HTML, and allows the viewer to rotate the view
+and move nodes. We found it useful to be able
+to change the viewing angle of more complicated graphs.
+
+CRAIG: any comments on this section in particular?
+
+\subsection{Open design questions}
+We point out some of the design decisions that we have embedded into VizAPI's
+design and which could be examined in future work.
+\begin{itemize}
+\item Granularity: We chose Java packages as the level of granularity, and coalesce nodes from the same JAR file and with the same edges. One could have a different coalescing policy. An overly-fine granularity makes graphs that are hard to understand, while an overly-coarse granularity provides no information. Also, some sort of cross-cutting modularity mechanism might make more sense, for instance a filter for all classes that use the \texttt{Node} class defined in some library.
+\item Dependency types: We have chosen what we believe is a fairly exhaustive set of ways that components can depend on each other. Some of these ways may turn out to be unimportant to developers, and we may have missed others.
+\item Combining static and dynamic information: We currently treat static and dynamic information separately. One could imagine an analysis design where dynamic information feeds into static information à la TamiFlex. (Also, we show both static and dynamic edges; users may choose to see only static or only dynamic information.)
+\end{itemize}

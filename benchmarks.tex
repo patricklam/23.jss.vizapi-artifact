@@ -30,8 +30,8 @@ h2 & 1.4.200 & database & 147.2 & 1010 & \checkmark & & \checkmark \\
 \end{table}
 
 We use the libraries.io dataset\footnote{\url{https://libraries.io/}} to construct a dependency graph and look for the most used upstream components (highest number of other components depends on [any version of] those), 
-and the top downstream components (clients). We exclude any clients that have less than 10 stars or less than 10 forks on Github.  Apart from this, we also pick a subset of projects from the
-Duets benchmarks~\cite{durieux21}. We exclude components that do not contain unit tests, components that use our chosen library only for testing
+and the top downstream components (clients). We exclude any clients that have fewer than 10 stars or fewer than 10 forks on Github.  Apart from this, we also pick a subset of projects from the
+Duets benchmarks~\cite{durieux21}. We exclude components that do not contain unit tests, components that use our chosen library only for testing,
 and components that declare the library as a dependency in their POM file, but do not actually use it. Our benchmark set contains both Maven single module and multi-module components.
 
 We executed each of the clients' test suites to collect data about how the clients use all of their dependencies; our data therefore includes not just interactions between our clients and the 11 libraries sampled, but also ``bycatch''---that is, other libraries that are also called by the clients (``also depends on'' in Figure~\ref{fig:workflow}) and the libraries. The total static transitive closure of dependencies of our clients includes 4297 components.
