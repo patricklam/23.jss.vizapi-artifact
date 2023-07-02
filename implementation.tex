@@ -5,13 +5,12 @@ visualization.
 
 The data extraction phase uses static and dynamic
 analysis to collect data about client usages of libraries. We generate both static and
-dynamic call graphs as well as other client-library interactions such as field accesses
+dynamic call graphs, and we also capture other client-library interactions some of which include field accesses
 and annotation usage. 
 
-The visualization phase transforms the extracted data into d3 format using our customized version
-of the d3graph\footnote{\url{https://pypi.org/project/d3graph/}} library in Python, generates d3js\footnote{\url{https://d3js.org/}}
-visualizations and makes it
-available to users. 
+The visualization phase transforms the extracted data into d3 format by first converting the data into a graph and then using our customized version
+of the d3graph\footnote{\url{https://pypi.org/project/d3graph/}} library in Python to generate d3js\footnote{\url{https://d3js.org/}}
+visualizations. 
 
 In this section, we start by describing the design of our VizAPI
 tool. Then, in Section~\ref{sec:design-decisions}, we discuss
@@ -40,13 +39,13 @@ VizAPI creates graphs where the nodes are packages that belong to components (cl
 
 Figure~\ref{fig:example} illustrates a VizAPI usage scenario, from the perspective of a client developer worried about breaking changes from the library. It shows plain Java client $C$ (blue nodes) and library $L$ (purple nodes). Library $L$ has packages $L_1$, $L_2$, and $L_3$. $C$ calls into $L_1$ and $L_2$. Internally, within $L$, $L_1$ and $L_2$ call into each other, but not into $L_3$. The VizAPI result, with no edges from $C$ directly to $L_3$, allows a developer to conclude that breaking changes in $L_3$ will not affect $C$. Also, if only $L_3$ uses an external dependency $D$ (yellow node), then $C$ will not need $D$ to be on its classpath.
 
-To do this, VizAPI needs to collect information about dependencies. We provide a few examples of dependencies---enough to give the idea of what VizAPI is looking for, but not an exhaustive list.
+To do this, VizAPI needs to collect information about interactions between clients, libraries and dependencies. We provide a few examples of interactions---enough to give the idea of what VizAPI is looking for, but not an exhaustive list.
 
 \paragraph{Vanilla invocations} The goal here is to capture information about method calls between components. This information can be approximated statically using Class Hierarchy Analysis, as we describe below. Furthermore, it can also be captured precisely at runtime, at least for the invocations that happen on a particular set of executions.
 
-\paragraph{Dynamic proxies and reflective calls} We use a dynamic approach for recording these calls to avoid needing to make hopelessly conservative approximations. The soundiness manifesto~\cite{livshits15:_in_defen_sound} points out that many papers in the literature claim soundness and are, in fact, sound for most language features, but exclude highly dynamic features like reflection. VizAPI uses dynamic information to capture some of what happens under reflection.
+\paragraph{Dynamic proxies and reflective calls} We use a dynamic approach for recording calls made using Java dynamic proxies and Java reflection to avoid needing to make hopelessly conservative approximations. The soundiness manifesto~\cite{livshits15:_in_defen_sound} points out that many papers in the literature claim soundness and are, in fact, sound for most language features, but exclude highly dynamic features like reflection. VizAPI uses dynamic information and instrumentation to capture certain patterns of reflection and dynamic proxies.
 
-\paragraph{Service Loaders} This Java API allows Java programs to dynamically load additional code, typically plugins. The plugins would declare a published interface, which we can record statically. VizAPI shows uses of the published interface as well as dynamic calls that exceed the public interface.
+\paragraph{Service Loaders} This Java API allows Java programs to dynamically load additional code, typically plugins. The plugins would declare a published interface, which we can record statically. VizAPI captures uses of the published interface as well as dynamic calls that exceed the public interface.
 
 \subsection{Static Analysis and Instrumentation}
 \label{subsec:static}
@@ -230,7 +229,8 @@ from the source package(s) to the target package(s) and represents an interactio
 (invocations, fields, annotations, subtyping) between packages. 
 The thickness of each edge reflects the frequency of interactions between the source and the target.
 Double-clicking on a node emphasizes its direct interactions with other packages while fading out the rest of the graph.
-To search for a package, we can click on “show packagenames” and use the browser’s find functionality. 
+To search for a package, we can click on “show package
+names” and use the browser’s find functionality. 
 The "Link threshold" slider allows the user to form new clusters based on the intended frequency of interactions.
 
 
