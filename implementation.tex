@@ -5,7 +5,7 @@ visualization.
 
 The data extraction phase uses static and dynamic
 analysis to collect data about client usages of libraries. We generate both static and
-dynamic call graphs, and we also capture other client-library interactions some of which include field accesses
+dynamic call graphs, and we also capture other client-library interactions, including field accesses
 and annotation usage. 
 
 The visualization phase transforms the extracted data into d3 format by first converting the data into a graph and then using our customized version
@@ -39,7 +39,7 @@ VizAPI creates graphs where the nodes are packages that belong to components (cl
 
 Figure~\ref{fig:example} illustrates a VizAPI usage scenario, from the perspective of a client developer worried about breaking changes from the library. It shows plain Java client $C$ (blue nodes) and library $L$ (purple nodes). Library $L$ has packages $L_1$, $L_2$, and $L_3$. $C$ calls into $L_1$ and $L_2$. Internally, within $L$, $L_1$ and $L_2$ call into each other, but not into $L_3$. The VizAPI result, with no edges from $C$ directly to $L_3$, allows a developer to conclude that breaking changes in $L_3$ will not affect $C$. Also, if only $L_3$ uses an external dependency $D$ (yellow node), then $C$ will not need $D$ to be on its classpath.
 
-To do this, VizAPI needs to collect information about interactions between clients, libraries and dependencies. We provide a few examples of interactions---enough to give the idea of what VizAPI is looking for, but not an exhaustive list.
+To do this, VizAPI needs to collect information about interactions between clients, libraries, and dependencies. We provide a few examples of interactions---enough to give the idea of what VizAPI is looking for, but not an exhaustive list.
 
 \paragraph{Vanilla invocations} The goal here is to capture information about method calls between components. This information can be approximated statically using Class Hierarchy Analysis, as we describe below. Furthermore, it can also be captured precisely at runtime, at least for the invocations that happen on a particular set of executions.
 
@@ -226,7 +226,7 @@ outgoing edges.
 
 Each edge is directed
 from the source package(s) to the target package(s) and represents an interaction 
-(invocations, fields, annotations, subtyping) between packages. 
+(e.g. invocations, fields, annotations, subtyping) between packages. 
 The thickness of each edge reflects the frequency of interactions between the source and the target.
 Double-clicking on a node emphasizes its direct interactions with other packages while fading out the rest of the graph.
 To search for a package, we can click on “show package
