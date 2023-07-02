@@ -1,10 +1,17 @@
 \section{Implementation}
 \label{sec:implementation}
 Our VizAPI tool includes two main phases: (1) data extraction and (2)
-visualization. The data extraction phase uses static and dynamic
-analysis to collect data about client usages of libraries. The
-visualization phase transforms the extracted data into d3 format and makes it
-available to users.
+visualization. 
+
+The data extraction phase uses static and dynamic
+analysis to collect data about client usages of libraries. We generate both static and
+dynamic call graphs as well as other client-library interactions such as field accesses
+and annotation usage. 
+
+The visualization phase transforms the extracted data into d3 format using our customized version
+of the d3graph\footnote{\url{https://pypi.org/project/d3graph/}} library in Python, generates d3js\footnote{\url{https://d3js.org/}}
+visualizations and makes it
+available to users. 
 
 In this section, we start by describing the design of our VizAPI
 tool. Then, in Section~\ref{sec:design-decisions}, we discuss
@@ -163,12 +170,13 @@ and insert instrumention that increments counters every time there is
 an interaction with a different JAR. The instrumentation also builds
 dynamic call graphs.
 
-
-\todo{where is the agent}
-
 In the dynamic analysis phase, we modify the build system of each
 client (Maven) to run its provided tests on instrumented code,
-obtaining dynamic call graphs.  The static analysis captures the
+obtaining dynamic call graphs. 
+The instrumentation is built into a Java agent JAR using Maven and 
+the agent is then passed as an argument to Maven when running client unit tests.
+
+The static analysis captures the
 following patterns: vanilla invocations, field accesses, class usages,
 setAccessible(), annotations and inheritance information. The dynamic
 analysis captures all dynamic uses of those patterns and additionally
@@ -222,12 +230,14 @@ from the source package(s) to the target package(s) and represents an interactio
 (invocations, fields, annotations, subtyping) between packages. 
 The thickness of each edge reflects the frequency of interactions between the source and the target.
 Double-clicking on a node emphasizes its direct interactions with other packages while fading out the rest of the graph.
+To search for a package, we can click on “show packagenames” and use the browser’s find functionality. 
+The "Link threshold" slider allows the user to form new clusters based on the intended frequency of interactions.
 
-\todo{more information on the UI available to the user: choosing static/dynamic, filtering, search}
 
 We run a Python implementation of the Louvain clustering algorithm~\cite{blondel2008fast}, and make the clusters 
 visible by colouring nodes based on cluster.
-This means that the same colour could indicate nodes (of the same category) from the same or different JARs.
+This means that the same colour could indicate nodes (of the same cluster) from the same or different JARs.
 Hovering on a node shows the list of packages and 
 the JAR that they belong to, 
 formatted as “jar : $\langle$space separated list of packages$\rangle$”. 
+Hovering on an edge shows the type of interaction (invocations, fields, annotations, subtyping or a combination of these) between nodes.

@@ -20,7 +20,10 @@ needs---''projects like you used libraries X and Y''. In particular,
 VizAPI can help surface the specific packages that similar projects used,
 helping developers understand the functionalities of candidate libraries.
 
-\todo{what do you mean analyze library version usage?}
+Our static and dynamic analyses record versions of different libraries used. 
+Examining the data to observe how often clients upgrade library versions, 
+whether clients use multiple versions of the same library is possibly interesting research for library developers.
+\todo{library version usage: does this make sense?}
 
 Another area of potential applications would be security; we already
 identify {\texttt ServiceLoader} bypasses, and could also identify
@@ -50,6 +53,6 @@ analysis results that we compute and rely on.
 %% Developer experience: analyze dataset for improving experience of library users
 %% Help library developers identify which features to focus efforts on
 %% Predict good choices of libraries based on client use case
-%% Analyze library version usage
+%% Analyze library version usage: how often clients upgrade their library versions, do they use 
 %% How does static and dynamic usage differ?
 %% (other ML applications of the data??)
