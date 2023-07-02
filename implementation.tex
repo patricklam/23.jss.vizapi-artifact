@@ -229,14 +229,14 @@ from the source package(s) to the target package(s) and represents an interactio
 (e.g. invocations, fields, annotations, subtyping) between packages. 
 The thickness of each edge reflects the frequency of interactions between the source and the target.
 Double-clicking on a node emphasizes its direct interactions with other packages while fading out the rest of the graph.
-To search for a package, we can click on “show package
+To search for a package, the user can click on “show package
 names” and use the browser’s find functionality. 
-The "Link threshold" slider allows the user to form new clusters based on the intended frequency of interactions.
+The "Link threshold" slider allows the user to form new clusters based on frequencies of interactions.
 
 
 We run a Python implementation of the Louvain clustering algorithm~\cite{blondel2008fast}, and make the clusters 
 visible by colouring nodes based on cluster.
-This means that the same colour could indicate nodes (of the same cluster) from the same or different JARs.
+Nodes of the same cluster may come from the same or different JARs, and colours could be reused between clusters.
 Hovering on a node shows the list of packages and 
 the JAR that they belong to, 
 formatted as “jar : $\langle$space separated list of packages$\rangle$”. 
