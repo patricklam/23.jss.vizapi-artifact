@@ -13,8 +13,8 @@ The visualization phase transforms the extracted data into d3 format by first co
 of the d3graph\footnote{\url{https://pypi.org/project/d3graph/}} library in Python to generate d3js\footnote{\url{https://d3js.org/}}
 visualizations. 
 
-In this section, we start by describing the design of our VizAPI
-tool, followed by its implementation. Then, in Section~\ref{sec:design-decisions}, we discuss
+In this section, we start by describing our VizAPI
+tool. Next, we discuss its implementation. Then, in Section~\ref{sec:design-decisions}, we explore
 alternatives that we could have chosen, including their advantages and
 drawbacks.  The goal of this paper is to produce an explanation of our
 artifact that will be helpful to other researchers, including in
@@ -117,7 +117,7 @@ For VizAPI, using Javassist~\cite{chiba00:_load_struc_reflec_java}, we
 perform class hierarchy analysis on components and create a static call
 graph. 
 
-We implement class hierarchy analysis manually. When we first read the class files from JARS, we record
+We implement class hierarchy analysis manually. When we first read the class files from JARs, we record
 inheritance relationships between classes. Then, when we walk through the different kinds of interactions,
  we add an edge between the caller and its potential callees
 (as earlier recorded in the inheritance relationships). 
@@ -251,7 +251,7 @@ The "Link threshold" slider allows the user to form new clusters based on freque
 
 We run a Python implementation of the Louvain clustering algorithm~\cite{blondel2008fast}, and make the clusters 
 visible by colouring nodes based on cluster.
-Nodes of the same cluster may come from the same or different JARs, and colours could be reused between clusters.
+Nodes of the same cluster may come from the same or different JARs.
 Hovering on a node shows the list of packages and 
 the JAR that they belong to, 
 formatted as “jar : $\langle$space separated list of packages$\rangle$”. 
