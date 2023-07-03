@@ -125,7 +125,7 @@ inheritance relationships between classes; then, when we re-visit all
 methods, we add an edge between the caller and its potential callees
 (as earlier recorded).  In any case, we need the inheritance
 relationships: when a client extends a library class, that constitutes
-a different kind of dependency (not discussed here), which we also record.
+a different kind of dependency (not further discussed here), which we also record.
 
 \paragraph{Service Loaders} Before the instrumentation, we record a list 
 of services and their implementations by statically inspecting files in \texttt{src/main/resources/META-INF/services}. This gives a static list of dependencies; anything beyond this list that we observe dynamically would be a service bypass.
@@ -147,8 +147,8 @@ and writes them out upon program termination.
 \paragraph{Dynamic proxies and reflective calls}
 Our instrumentation intercepts calls to
 \texttt{java.lang.reflect.Method.invoke()}, a distinguished method
-used to invoke dynamic proxies and reflective calls, dynamically
-recording details of the calls that we intercept. It is possible for
+used to invoke dynamic proxies and reflective calls, 
+recording details of the calls that we intercept at runtime. It is possible for
 static analyses to resolve a subset of such calls using clever
 techniques. Our machinery does not provide enough information to
 statically resolve this dependency, but we have full visibility on
@@ -159,7 +159,7 @@ classes in clients, either through instantiations, casts or reflection. To do so
 to method \texttt{load()} in classes with name \texttt{Service*Loader} and record any calls to methods beyond 
 the published interface that we have recorded statically.
 
-\paragraph{Instrumentation implementation}
+\paragraph{How we implemented instrumentation}
 We first recompile and instrument the classes. Using Maven, we build JAR
 files that contain source code only. This ensures that we do not
 capture library uses meant solely for unit testing.  We recompile
@@ -181,7 +181,7 @@ setAccessible(), annotations and inheritance information. The dynamic
 analysis captures all dynamic uses of those patterns and additionally
 reflection, dynamic proxies and service loader bypasses.
 
-While our current benchmark set consists of 101 projects, it is possible to run both our static and dynamic analysis tool and the VizAPI visualization tool on new libraries and clients. However, when either tool is run by a library developer, they are required to provide a specific set of clients that they wish to observe as input to the tools. Libraries.io can be used to find popular clients of libraries---it provides a dependency tree based on projects' packaging information.
+While our current benchmark set consists of 101 projects, it is possible to run both our static and dynamic analysis tool and the VizAPI visualization tool on new libraries and clients. However, when either tool is run by a library developer, they are required to provide a specific set of clients that they wish to observe as input to the tools. Developers can use libraries.io to find popular clients of libraries---it provides a dependency tree based on projects' packaging information.
 
 
 \subsection{Visualization System}
