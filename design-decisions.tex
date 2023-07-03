@@ -5,7 +5,7 @@ Having described VizAPI's implementation, we now broaden our attention
 and discuss possible design alternatives, particularly in terms of toolkits
 that we could have used.
 
-VizAPI works on Java bytecode. We believe that Java is a good choice
+VizAPI works on Java bytecode. Java was a good choice for us
 because the ecosystem of Java code available on the
 Internet is vast, and Java bytecode is amenable to analysis. 
 npm also has a lively ecosystem, but JavaScript is much harder to
@@ -23,12 +23,12 @@ approximate method calls. The soundiness
 manifesto~\cite{livshits15:_in_defen_sound} discusses the
 underapproximations used by typical static analysis in more detail.
 
-On the other hand, dynamic analysis under-approximates possible
+On the other hand, dynamic analysis routinely under-approximates possible
 program behaviours: it reports only the behaviour that is induced by
 a particular program input. It completely reports that behaviour, though,
-and sees through constructs that are difficult for static analyses to
+and sees through constructs like ``eval'' that are difficult for static analyses to
 handle soundly. TamiFlex~\cite{bodden11:_tamin_reflec} dynamically captures
-information about, for instance, which classes are loaded at runtime,
+information about (among other things) which classes are loaded at runtime,
 and feeds that back to the static analysis.
 
 VizAPI integrates static and dynamic information. The approach is
@@ -171,7 +171,7 @@ straightforward to generate a driver that invokes all test cases.
 \paragraph{Declarative approaches}
 So far, we have discussed analysis and transformation approaches that have
 been primarily imperative, with ByteBuddy a minor exception. By contrast,
-declarative approaches like Doop are surprisingly powerful and concise.
+declarative approaches like Doop are concise and surprisingly powerful.
 In Doop's declarative approach, it suffices to declare the rules that
 define the analysis. For instance, this utility rule relates methods
 that have the same name and descriptor but have different declaring types:
@@ -185,7 +185,7 @@ SameMethodExceptDeclaringType(m, m0) :-
   Method_Descriptor(m0, d).
 \end{lstlisting}
 
-One challenge of using Doop is that it is not obvious to find
+In practice, one challenge of using Doop is that it is not obvious to find
 the relations that Doop provides to users; the documentation is
 somewhat sparse.
 
@@ -204,14 +204,14 @@ dynamic data.
 java agent versus JVMTI
 
 \subsection{Visualization}
-Although GraphViz~\footnote{\url{https://graphviz.org/}} is the dominant
+Although GraphViz\footnote{\url{https://graphviz.org/}} is the dominant
 free graph layout software, we chose to use d3graph to present our graphs.
 It is still a mostly-static representation of a single graph. However,
 d3graph renders to HTML, and allows the viewer to rotate the view
 and move nodes. We found it useful to be able
 to change the viewing angle of more complicated graphs.
 
-CRAIG: any comments on this section in particular?
+CRAIG: any comments on this section in particular? probably should be longer and compare to more alternatives
 
 \subsection{Open design questions}
 We point out some of the design decisions that we have embedded into VizAPI's
@@ -219,5 +219,5 @@ design and which could be examined in future work.
 \begin{itemize}
 \item Granularity: We chose Java packages as the level of granularity, and coalesce nodes from the same JAR file and with the same edges. One could have a different coalescing policy. An overly-fine granularity makes graphs that are hard to understand, while an overly-coarse granularity provides no information. Also, some sort of cross-cutting modularity mechanism might make more sense, for instance a filter for all classes that use the \texttt{Node} class defined in some library.
 \item Dependency types: We have chosen what we believe is a fairly exhaustive set of ways that components can depend on each other. Some of these ways may turn out to be unimportant to developers, and we may have missed others.
-\item Combining static and dynamic information: We currently treat static and dynamic information separately. One could imagine an analysis design where dynamic information feeds into static information à la TamiFlex. (Also, we show both static and dynamic edges; users may choose to see only static or only dynamic information.)
+\item Combining static and dynamic information: We currently treat static and dynamic information separately. One could imagine an analysis design where dynamic information feeds into static information à la TamiFlex. (Also, by default, we show both static and dynamic edges; users may hide either static or dynamic information.)
 \end{itemize}

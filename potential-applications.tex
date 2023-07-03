@@ -1,8 +1,9 @@
 \section{Potential Applications}
 \label{sec:potential-applications}
 While the main contribution of this paper is to share our experiences
-about writing program analysis and transformation tools, we also
-briefly outline some potential applications of VizAPI itself.
+about writing program analysis and transformation tools with the hope
+that they are useful to other researchers, we also briefly outline
+some potential applications of VizAPI itself.
 
 In our original paper, we discussed how 1) library developers could
 use VizAPI to guide their API maintenance decisions---based on actual
@@ -16,14 +17,14 @@ An extension of VizAPI could help with the problem of library selection. In
 Section~\ref{sec:design-decisions} we discussed considerations for library
 selection for VizAPI-like tools. An extension to VizAPI could also help
 general developers pick which libraries would be helpful for their
-needs---''projects like you used libraries X and Y''. In particular,
-VizAPI can help surface the specific packages that similar projects used,
+needs---e.g., ``projects like you used libraries X and Y''. In particular,
+VizAPI can surface the specific packages that similar projects used,
 helping developers understand the functionalities of candidate libraries.
 
 Our static and dynamic analyses record versions of different libraries used. 
-Examining the data to observe how often clients upgrade library versions, 
-whether clients use multiple versions of the same library is possibly interesting research for library developers.
-\todo{library version usage: does this make sense?}
+Generalizing our work to surface whether clients use multiple versions of the same library and
+to analyze repository histories to observe how often clients upgrade library versions 
+could be useful information for library developers in considering when to make releases.
 
 Another area of potential applications would be security; we already
 identify {\texttt ServiceLoader} bypasses, and could also identify
