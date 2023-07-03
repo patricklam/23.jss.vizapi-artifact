@@ -29,11 +29,7 @@ and the first author's MMath thesis~\cite{venkatanarayanan22:_study_lever_api_us
 We first define the terms ``client'', ``library'' and ``dependency'', which we use throughout this paper. A ``client'' is a software component which directly uses some functionality of an external component, which is the ``library''. Any external component that the ``library'' directly uses is a ``dependency'' of that library; components may also have ``transitive dependencies''.
 \todo{ensure consistent usage of terms: library, dependency, interaction}
 
-<<<<<<< HEAD
-VizAPI creates graphs where the nodes are packages that belong to components (clients, libraries and dependencies) and the edges are the types of interactions between the packages. We create these graphs in the hope that they will be useful to developers who are thinking about API design questions for their clients and libraries. VizAPI employs static and dynamic analyses to construct the graphs. 
-=======
-VizAPI creates graphs where the nodes are packages that belong to components (clients and libraries) and the edges represent dependencies between the packages. We create these graphs in the hope that they will be useful to developers who are thinking about API design questions for their clients and libraries. VizAPI employs static and dynamic analyses to construct the graphs. 
->>>>>>> 5c2947fea7de5c43463531a7e26c8d8fc8dcd6c9
+VizAPI creates graphs where the nodes are packages that belong to components (clients, libraries and dependencies) and the edges represent the types of interactions between the packages. We create these graphs in the hope that they will be useful to developers who are thinking about API design questions for their clients and libraries. VizAPI employs static and dynamic analyses to construct the graphs. 
 
 \begin{figure}[h]
 \begin{center}
