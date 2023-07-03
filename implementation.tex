@@ -27,7 +27,7 @@ and the first author's MMath thesis~\cite{venkatanarayanan22:_study_lever_api_us
 
 We first define the terms ``client'', ``library'' and ``dependency'', which we use throughout this paper. A ``client'' is a software component which directly uses some functionality of an external component, which is the ``library''. Any external component that the ``library'' directly uses is a ``dependency'' of that library; components may also have ``transitive dependencies''.
 
-VizAPI creates graphs where the nodes are packages that belong to components (clients and libraries) and the edges are dependencies between the packages. We create these graphs in the hope that they will be useful to developers who are thinking about API design questions for their clients and libraries. VizAPI employs static and dynamic analyses to construct the graphs. 
+VizAPI creates graphs where the nodes are packages that belong to components (clients and libraries) and the edges represent dependencies between the packages. We create these graphs in the hope that they will be useful to developers who are thinking about API design questions for their clients and libraries. VizAPI employs static and dynamic analyses to construct the graphs. 
 
 \begin{figure}[h]
 \begin{center}
@@ -37,9 +37,9 @@ VizAPI creates graphs where the nodes are packages that belong to components (cl
 \end{center}
 \end{figure}
 
-Figure~\ref{fig:example} illustrates a VizAPI usage scenario, from the perspective of a client developer worried about breaking changes from the library. It shows plain Java client $C$ (blue nodes) and library $L$ (purple nodes). Library $L$ has packages $L_1$, $L_2$, and $L_3$. $C$ calls into $L_1$ and $L_2$. Internally, within $L$, $L_1$ and $L_2$ call into each other, but not into $L_3$. The VizAPI result, with no edges from $C$ directly to $L_3$, allows a developer to conclude that breaking changes in $L_3$ will not affect $C$. Also, if only $L_3$ uses an external dependency $D$ (yellow node), then $C$ will not need $D$ to be on its classpath.
+Figure~\ref{fig:example} illustrates a VizAPI usage scenario, from the perspective of a client developer worried about breaking changes from a new version of a library. It shows plain Java client $C$ (blue nodes) and library $L$ (purple nodes). Library $L$ has packages $L_1$, $L_2$, and $L_3$. $C$ calls into $L_1$ and $L_2$. Internally, within $L$, $L_1$ and $L_2$ call into each other, but not into $L_3$. The VizAPI result, with no edges from $C$ directly to $L_3$, allows a developer to conclude that breaking changes in $L_3$ will not affect $C$. Also, if only $L_3$ uses an external dependency $D$ (yellow node), then $C$ will not need $D$ to be on its classpath.
 
-To do this, VizAPI needs to collect information about interactions between clients, libraries, and dependencies. We provide a few examples of interactions---enough to give the idea of what VizAPI is looking for, but not an exhaustive list.
+To produce its graphs, VizAPI needs to collect information about interactions between clients, libraries, and dependencies. We provide a few examples of interactions---enough to give the idea of what VizAPI is looking for, but not an exhaustive list.
 
 \paragraph{Vanilla invocations} The goal here is to capture information about method calls between components. This information can be approximated statically using Class Hierarchy Analysis, as we describe below. Furthermore, it can also be captured precisely at runtime, at least for the invocations that happen on a particular set of executions.
 
