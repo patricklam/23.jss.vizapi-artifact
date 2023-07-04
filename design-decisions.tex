@@ -197,11 +197,26 @@ be challenging to apply Doop results to drive transformations. Doop also
 has substantial runtime cost.
 
 \subsection{Dynamic analysis}
-As discussed in Section~\ref{subsec:static}, VizAPI uses Javassist
-to transform the code before running the instrumented code to collect
+As discussed in Section~\ref{subsec:dynamic}, VizAPI uses Java instrumentation APIs (\texttt{java.lang.instrument interface}) and Javassist
+to transform the code before running the instrumented code as a Java agent to collect
 dynamic data.
 
-java agent versus JVMTI
+Java has two different mechanisms for gathering dynamic information, Java agents and the Java Virtual Machine Tool Interface (JVMTI).
+
+\paragraph{Java agents}
+Java agents along with Java instrumentation APIs (\texttt{java.lang.instrument interface}) allow you to modify bytecode of classes.
+Different libraries such as ASM and Javassist provide APIs for bytecode manipulation, we choose Javassist for VizAPI.  
+The Java agent is attached to the JVM, which means it shares the heap and the garbage collector with the application being run.
+Since the agent also runs in the JVM, Java agents are portable.
+We use a Java agent for VizAPI's dynamic analysis because it allows for straightforward bytecode manipulation 
+and also because our dynamic analysis focuses on API interactions and not memory management.
+
+\paragraph{JVMTI}
+JVMTI is a set of native APIs which provide the ability to inspect the JVM in multiple ways including memory management, 
+thread synchronization and code manipulation.
+JVMTI agents are native and do not reside within the JVM. 
+This means that this is a good choice for monitoring JVM internals such as memory and garbage collection without introducing overhead from the agent itself.
+However, portability is affected in this case since it is a native interface.
 
 \subsection{Visualization}
 Although GraphViz\footnote{\url{https://graphviz.org/}} is the dominant
