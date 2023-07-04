@@ -6,10 +6,13 @@ visualization.
 
 The data extraction phase uses static and dynamic
 analysis to collect data about client usages of libraries. We generate both static and
-dynamic call graphs, and we also capture other client-library interactions, including field accesses
-and annotation usage. 
+dynamic call graphs, and we also capture other client-library interactions. The static analysis captures the
+following interactions: vanilla invocations, field accesses, class usages,
+setAccessible(), annotations and inheritance information. The dynamic
+analysis captures all dynamic uses of those patterns and additionally
+reflection, dynamic proxies and service loader bypasses.
 
-The visualization phase transforms the extracted data into d3 format by first converting the data into a graph and then using our customized version
+The visualization phase transforms the data extracted in the first phase into d3 format by first converting the data into a graph and then using our customized version
 of the d3graph\footnote{\url{https://pypi.org/project/d3graph/}} library in Python to generate d3js\footnote{\url{https://d3js.org/}}
 visualizations. 
 
@@ -21,12 +24,12 @@ artifact that will be helpful to other researchers, including in
 particular an exploration of the design space for tools like ours.
 
 \subsection{VizAPI}
-Although it is not the focus of this paper, we briefly describe VizAPI
-to enable discussions of its design and implementation.
+We briefly describe VizAPI to enable discussions of its design and implementation.
 The VISSOFT paper~\cite{venkatanarayanan22:_vizap}
 and the first author's MMath thesis~\cite{venkatanarayanan22:_study_lever_api_usage_patter} explain VizAPI in more detail.
 
-We first define the terms ``client'', ``library'' and ``dependency'', which we use throughout this paper. A ``client'' is a software component which directly uses some functionality of an external component, which is the ``library''. Any external component that the ``library'' directly uses is a ``dependency'' of that library; components may also have ``transitive dependencies''.
+We first define the terms ``client'', ``library'', ``dependency'' and ``interaction", which we use throughout this paper. A ``client'' is a software component which directly uses some functionality of an external component, which is the ``library''. Any external component that the ``library'' directly uses is a ``dependency'' of that library; components may also have ``transitive dependencies''. The pattern observed when a client/library boundary is crossed is termed an ``interaction". Examples of interactions include vanilla invocations, field accesses and annotation usage.
+
 \todo{ensure consistent usage of terms: library, dependency, interaction}
 
 VizAPI creates graphs where the nodes are packages that belong to components (clients, libraries and dependencies) and the edges represent the types of interactions between the packages. We create these graphs in the hope that they will be useful to developers who are thinking about API design questions for their clients and libraries. VizAPI employs static and dynamic analyses to construct the graphs. 
@@ -47,7 +50,7 @@ To produce its graphs, VizAPI needs to collect information about interactions be
 
 \paragraph{Dynamic proxies and reflective calls} We use a dynamic approach for recording calls made using Java dynamic proxies and Java reflection to avoid needing to make hopelessly conservative approximations. The soundiness manifesto~\cite{livshits15:_in_defen_sound} points out that many papers in the literature claim soundness and are, in fact, sound for most language features, but exclude highly dynamic features like reflection. VizAPI uses dynamic information and instrumentation to capture certain patterns of reflection and dynamic proxies.
 
-\paragraph{Service Loaders} This Java API allows Java programs to dynamically load additional code, typically plugins. The plugins would declare a published interface, which we can record statically. VizAPI captures uses of the published interface as well as dynamic calls that exceed the public interface.
+\paragraph{Service Loaders} This Java API allows Java programs to dynamically load additional code, typically plugins. The plugins would declare a published interface, which we can record statically. VizAPI captures uses of the published interface as well as dynamic calls that exceed the public interface.\\
 
 
 Our VizAPI tool integrates data from both static and dynamic analysis.
@@ -55,8 +58,8 @@ We use Javassist for our static analysis, which we discuss in Section~\ref{subse
 collect dynamic analysis data; we discuss that part in
 Section~\ref{subsec:dynamic}.
 
-We first record the extents of clients and libraries by inspecting JAR
-files of each software component (clients and libraries) to obtain a
+We first record the extents of clients, libraries and dependencies by inspecting JAR
+files of each software component (clients, libraries and dependencies) to obtain a
 list of classes for every component. We associate classes and their
 members to components based on these lists.  This allows us to
 identify interactions across the client/library boundaries. Using Maven, we build JAR
@@ -117,7 +120,7 @@ For VizAPI, using Javassist~\cite{chiba00:_load_struc_reflec_java}, we
 perform class hierarchy analysis on components and create a static call
 graph. 
 
-We implement class hierarchy analysis manually. When we first read the class files from JARs, we record
+We implement class hierarchy analysis manually. We first read the class files from JARs of clients, libraries and dependencies (provided by Maven) and we record
 inheritance relationships between classes. Then, when we walk through the different kinds of interactions,
  we add an edge between the caller and its potential callees
 (as earlier recorded in the inheritance relationships). 
@@ -181,18 +184,13 @@ In the dynamic analysis phase, we modify the build system of each
 client (Maven) to run its provided unit tests on instrumented code,
 obtaining dynamic call graphs. 
 Using the Java instrumentation APIs and Javassist APIs that modify bytecode,
-we first examine each class and its members,
-and then instrument them to increment counters every time there is an interaction outside the JAR it belongs to.
-The code that we inserted during the instrumentation phase keeps track of invocation counters
-and writes them out upon program termination.
+we instrument classes and their members to increment counters for every interaction outside the JAR it belongs to.
 The instrumentation is built into a Java agent JAR using Maven.
-The agent is then passed as an argument to Maven when running client unit tests, which attaches it to the JVM.\\
+The agent is then passed as an argument to Maven when running client unit tests, which attaches it to the JVM.
+Once classes are loaded, the agent modifies the bytecode and it is then executed.
+The code that we insert during the instrumentation phase keeps track of interactions and counters,
+and writes them out upon program termination. \\
 
-The static analysis captures the
-following patterns: vanilla invocations, field accesses, class usages,
-setAccessible(), annotations and inheritance information. The dynamic
-analysis captures all dynamic uses of those patterns and additionally
-reflection, dynamic proxies and service loader bypasses.
 
 While our current benchmark set consists of 101 projects, it is possible to run both our static and dynamic analysis tool and the VizAPI visualization tool on new libraries and clients. However, when either tool is run by a library developer, they are required to provide a specific set of clients that they wish to observe as input to the tools. Developers can use libraries.io to find popular clients of libraries---it provides a dependency tree based on projects' packaging information.
 
