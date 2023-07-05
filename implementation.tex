@@ -32,7 +32,7 @@ We first define the terms ``client'', ``library'', ``dependency'' and ``interact
 
 \todo{ensure consistent usage of terms: library, dependency, interaction}
 
-VizAPI creates graphs where the nodes are packages that belong to components (clients, libraries and dependencies) and the edges represent the types of interactions between the packages. We create these graphs in the hope that they will be useful to developers who are thinking about API design questions for their clients and libraries. VizAPI employs static and dynamic analyses to construct the graphs. 
+VizAPI creates graphs where the nodes are packages that belong to components (clients, libraries and dependencies) and the edges represent the types of interactions between the packages. We create these graphs with the goal of being usefuling to developers who are thinking about API design questions for their clients and libraries. VizAPI employs static and dynamic analyses to construct the graphs. 
 
 \begin{figure}[h]
 \begin{center}
@@ -53,6 +53,7 @@ To produce its graphs, VizAPI needs to collect information about interactions be
 \paragraph{Service Loaders} This Java API allows Java programs to dynamically load additional code, typically plugins. The plugins would declare a published interface, which we can record statically. VizAPI captures uses of the published interface as well as dynamic calls that exceed the public interface.\\
 
 
+\subsection{Overall design of VizAPI}
 Our VizAPI tool integrates data from both static and dynamic analysis.
 We use Javassist for our static analysis, which we discuss in Section~\ref{subsec:static}. We also use Javassist to instrument the code so that we can
 collect dynamic analysis data; we discuss that part in
@@ -120,7 +121,7 @@ For VizAPI, using Javassist~\cite{chiba00:_load_struc_reflec_java}, we
 perform class hierarchy analysis on components and create a static call
 graph. 
 
-We implement class hierarchy analysis manually. We first read the class files from JARs of clients, libraries and dependencies (provided by Maven) and we record
+We implement class hierarchy analysis ourselves. We first read the class files from JARs of clients, libraries and dependencies (provided by Maven) and we record
 inheritance relationships between classes. Then, when we walk through the different kinds of interactions,
  we add an edge between the caller and its potential callees
 (as earlier recorded in the inheritance relationships). 
