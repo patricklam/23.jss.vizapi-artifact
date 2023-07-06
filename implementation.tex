@@ -60,7 +60,7 @@ collect dynamic analysis data; we discuss that part in
 Section~\ref{subsec:dynamic}.
 
 Our static and dynamic analysis tool takes in a set of clients and libraries as input.
-We programatically obtain a list of dependencies for each client and library using Maven and locate their JARs in Maven's build output.
+We programatically obtain a list of dependencies for each client and library by invoking Maven, and locate the JARs that Maven downloads in its build output.
 We first record the extents of clients, libraries, and dependencies by inspecting JAR
 files of each software component (clients, libraries, and dependencies) to obtain a
 list of classes for every component. We associate classes and their
