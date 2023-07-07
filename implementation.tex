@@ -1,7 +1,6 @@
 \section{Implementation}
 \label{sec:implementation}
-\todo{organized place for artifact links}
-Our VizAPI tool includes two main phases: (1) data extraction and (2)
+VizAPI includes two phases: (1) data extraction and (2)
 visualization. 
 
 The data extraction phase uses static and dynamic
@@ -16,23 +15,20 @@ The visualization phase transforms the data extracted in the first phase into d3
 of the d3graph\footnote{\url{https://pypi.org/project/d3graph/}} library in Python to generate d3js\footnote{\url{https://d3js.org/}}
 visualizations. 
 
-In this section, we start by describing our VizAPI
-tool. Next, we discuss its implementation. Then, in Section~\ref{sec:design-decisions}, we explore
+In this section, we start by describing VizAPI. Next, we discuss its implementation. Then, in Section~\ref{sec:design-decisions}, we explore
 alternatives that we could have chosen, including their advantages and
 drawbacks.  The goal of this paper is to produce an explanation of our
 artifact that will be helpful to other researchers, including in
-particular an exploration of the design space for tools like ours.
+particular an exploration of the design space for program analysis and visualization tools like ours.
 
 \subsection{VizAPI}
 We briefly describe VizAPI to enable discussions of its design and implementation.
 The VISSOFT paper~\cite{venkatanarayanan22:_vizap}
 and the first author's MMath thesis~\cite{venkatanarayanan22:_study_lever_api_usage_patter} explain VizAPI in more detail.
 
-We first define the terms ``client'', ``library'', ``dependency'' and ``interaction", which we use throughout this paper. A ``client'' is a software component which directly uses some functionality of an external component, which is the ``library''. Any external component that the ``library'' directly uses is a ``dependency'' of that library; components may also have ``transitive dependencies''. The pattern observed when a client/library boundary is crossed is termed an ``interaction". Examples of interactions include vanilla invocations, field accesses and annotation usage.
+We first define the terms ``client'', ``library'', ``dependency'' and ``interaction", which we use throughout this paper. A ``client'' is a software component which directly uses some functionality of an external component, which is the ``library''. Any external component that the ``library'' directly uses is a ``dependency'' of that library; components may also have ``transitive dependencies''. The pattern observed when a client/library boundary is crossed is an ``interaction". Examples of interactions include vanilla invocations, field accesses and annotation usage.
 
-\todo{ensure consistent usage of terms: library, dependency, interaction}
-
-VizAPI creates graphs where the nodes are packages that belong to components (clients, libraries and dependencies) and the edges represent the types of interactions between the packages. We create these graphs with the goal of being usefuling to developers who are thinking about API design questions for their clients and libraries. VizAPI employs static and dynamic analyses to construct the graphs. 
+VizAPI creates graphs where the nodes are packages that belong to components (clients, libraries and dependencies) and the edges represent the types of interactions between the packages. We create these graphs with the goal of being useful to developers who are thinking about API design questions for their clients and libraries. VizAPI employs static and dynamic analyses to construct the graphs. 
 
 \begin{figure}[h]
 \begin{center}

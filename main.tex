@@ -151,15 +151,15 @@
 \begin{abstract}
   The VizAPI tool shows visualizations that include both static and dynamic interactions between clients, the libraries they use, and those libraries’ transitive dependencies, for the portions of these components that are written in Java. Client developers can use VizAPI to answer queries about upstream code: will their code be affected by breaking changes in library APIs? Library developers can use VizAPI to find out about downstream code: which APIs in their source code are commonly used by clients?
 
-In this paper, we describe the design and implementation of VizAPI, including our approach to static and dynamic analysis using the Javassist library. We focus on artifact-level issues: to help future program analysis tool developers, we discuss viable alternative libraries that we could have used to implement this tool. We then explain how we collected a dataset for VizAPI consisting of 11 libraries and 90 clients, transitively including 4297 components in all. Finally, we discuss potential future uses of VizAPI.
+In this paper, we describe the design and implementation of VizAPI, including our approach to static and dynamic analysis using the Javassist library. We focus on artifact-level issues: to help future developers of program analysis tools, we discuss viable alternative libraries that we could have used to implement this tool and discuss when different libraries are applicable. We then explain how we collected a dataset for VizAPI consisting of 11 libraries and 90 clients, transitively including 4297 components in all. Finally, we discuss potential future uses of VizAPI.
 \end{abstract}
 
 \begin{keyword}
+  tool design \sep
 static program analysis \sep
 dynamic program analysis \sep
-API usage \sep
-software evolution \sep
-software maintenance
+software visualization \sep
+benchmark selection
 %% keywords here, in the form: keyword \sep keyword
 
 %% MSC codes here, in the form: \MSC code \sep code
