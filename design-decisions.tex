@@ -34,7 +34,7 @@ and feeds that back to the static analysis.
 VizAPI integrates static and dynamic information. The approach is
 still not sound with respect to all potential executions, and it does
 not integrate dynamic class loading information into the static
-results, but it does make both types of information (as 
+results, but it does make both types of information (to the extent that it is 
 captured by the tool) visible to the user.
 
 \subsection{Static analysis and program transformation}
@@ -126,17 +126,17 @@ method that returns X''.
 More sophisticated static analysis can benefit from interprocedural
 information. For instance, it is useful to know about possible
 definition points for a local variable, even when that variable
-was assigned from a method parameter and ultimately another method.
+was assigned from a method parameter and ultimately from another method.
 
 Unfortunately, in Java, precise interprocedural analysis requires a
 call graph and pointer analysis information, and, as pointed out by
-Lhot\'ak, call graphs and pointer analysis information must be
+Lhot\'ak when explaining SPARK~\cite{lhot02}, call graphs and pointer analysis information must be
 computed in tandem. Getting more precise results than Class Hierarchy
 Analysis or, perhaps, Rapid Type
 Analysis~\cite{bacon96:_fast_static_analy_c_virtual_funct_calls},
 requires significant computation, and most analysis users would
 benefit from using an off-the-shelf implementation. Soot's SPARK
-toolkit~\cite{lhot02} is still used today, and
+toolkit is still used today, and
 Doop~\cite{bravenboer09:_stric_declar_specif_sophis_point_analy}
 provides more sophisticated options, which we discuss shortly.
 
@@ -204,7 +204,7 @@ dynamic data.
 Java provides two different mechanisms for gathering dynamic information: Java agents and the Java Virtual Machine Tool Interface (JVMTI).
 
 \paragraph{Java agents}
-Java agents, along with Java instrumentation APIs (\texttt{java.lang.instrument interface}), allow tool builders to modify classes' bytecode.
+Java agents, along with Java instrumentation APIs (\texttt{java.lang.instrument interface}), allow tool builders to modify classes' bytecode at runtime.
 Different libraries, such as ASM and Javassist, provide APIs for bytecode manipulation; having considered the options described above, we chose Javassist for VizAPI.  
 The Java agent is attached to the JVM, which means it shares the heap and the garbage collector with the application being run.
 Since the agent also runs in the JVM, Java agents are portable between different Virtual Machine implementations.
@@ -232,7 +232,7 @@ CRAIG: any comments on this section in particular? probably should be longer and
 We point out some of the design decisions that we have embedded into VizAPI's
 design and which could be examined in future work.
 \begin{itemize}
-\item Granularity: We chose Java packages as the level of granularity, and coalesce nodes from the same JAR file and with the same edges. One could have a different coalescing policy. An overly-fine granularity makes graphs that are hard to understand, while an overly-coarse granularity provides no information. Also, some sort of cross-cutting modularity mechanism might make more sense, for instance a filter for all classes that use the \texttt{Node} class defined in some library.
-\item Dependency types: We have chosen what we believe is a fairly exhaustive set of ways that components can depend on each other. Some of these ways may turn out to be unimportant to developers, and we may have missed others.
+\item Granularity: We chose Java packages as the level of granularity, and coalesce nodes from the same JAR file and with the same edges. One could have a different coalescing policy. An overly-fine granularity makes graphs that are hard to understand, while an overly-coarse granularity provides no information. Also, some sort of cross-cutting modularity mechanism might make more sense, for instance a filter selecting all classes that use the \texttt{Node} class defined in some library.
+\item Kinds of dependencies: We have chosen what we believe is a fairly exhaustive set of ways that components can depend on each other. Some of these ways may turn out to be unimportant to developers, and we may have missed others.
 \item Combining static and dynamic information: We currently treat static and dynamic information separately. One could imagine an analysis design where dynamic information feeds into static information à la TamiFlex. (Also, by default, we show both static and dynamic edges; users may hide either static or dynamic information.)
 \end{itemize}

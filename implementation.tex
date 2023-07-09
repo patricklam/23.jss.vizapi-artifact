@@ -28,7 +28,7 @@ and the first author's MMath thesis~\cite{venkatanarayanan22:_study_lever_api_us
 
 We first define the terms ``client'', ``library'', ``dependency'' and ``interaction", which we use throughout this paper. A ``client'' is a software component which directly uses some functionality of an external component, which is the ``library''. Any external component that the ``library'' directly uses is a ``dependency'' of that library; components may also have ``transitive dependencies''. The pattern observed when a client/library boundary is crossed is an ``interaction". Examples of interactions include vanilla invocations, field accesses and annotation usage.
 
-VizAPI creates graphs where the nodes are packages that belong to components (clients, libraries and dependencies) and the edges represent the types of interactions between the packages. We create these graphs with the goal of being useful to developers who are thinking about API design questions for their clients and libraries. VizAPI employs static and dynamic analyses to construct the graphs. 
+VizAPI creates graphs where the nodes are packages that belong to components (clients, libraries and dependencies) and the edges represent the types of interactions between the packages. We create these graphs with the goal of being useful to developers who are thinking about API design questions for their clients and libraries.
 
 \begin{figure}[h]
 \begin{center}
@@ -50,18 +50,19 @@ To produce its graphs, VizAPI needs to collect information about interactions be
 
 
 \subsection{Overall design of VizAPI}
-Our VizAPI tool integrates data from both static and dynamic analysis.
+We now explain the design of our VizAPI tool, which integrates data from both static and dynamic analysis.
 We use Javassist for our static analysis, which we discuss in Section~\ref{subsec:static}. We also use Javassist to instrument the code so that we can
 collect dynamic analysis data; we discuss that part in
 Section~\ref{subsec:dynamic}.
 
 Our static and dynamic analysis tool takes in a set of clients and libraries as input.
 We programatically obtain a list of dependencies for each client and library by invoking Maven, and locate the JARs that Maven downloads in its build output.
-We first record the extents of clients, libraries, and dependencies by inspecting JAR
-files of each software component (clients, libraries, and dependencies) to obtain a
-list of classes for every component. We associate classes and their
+We first record the extents of components (clients, libraries, and dependencies) by inspecting JAR
+files of each software component to obtain a
+list of classes for that component. We associate classes and their
 members to components based on these lists.  This allows us to
-identify interactions across the client/library boundaries. Using Maven, we build JAR
+identify interactions across the client/library boundaries (i.e. between classes that appear on different lists).
+Using Maven, we build JAR
 files that contain source code only. This ensures that we do not
 capture library uses meant solely for unit testing. 
 
@@ -150,7 +151,7 @@ describe how we capture specific dynamic interactions between components, and
 then discuss our instrumentation implementation.
 
 \paragraph{Vanilla invocations} 
-The standard case is simple. At every invoke instruction in every
+At every invoke instruction in every
 loaded method which transfers control between a client and a
 library, we add code to dynamically record
 the invoke by incrementing a counter just before the invoke
@@ -166,7 +167,7 @@ Our instrumentation intercepts calls to
 used to invoke dynamic proxies and reflective calls, 
 recording details of the calls that we intercept at runtime. It is possible for
 static analyses to resolve a subset of such calls using clever
-techniques. Our machinery does not provide enough information to
+techniques~\cite{christensen03:_precis_analy_strin_expres}. Our machinery does not provide enough information to
 statically resolve this dependency, but we have full visibility on
 calls that actually happen dynamically.
 
@@ -185,7 +186,7 @@ Asking the modified build system to run the client's tests gives us dynamic call
 
 Specifically, using the Java instrumentation APIs and getting them to call Javassist APIs that modify bytecode,
 we instrument classes and their members to increment counters for every interaction source
-with a destination outside the JAR that it belongs to.
+with a destination lying outside the JAR that it belongs to.
 Our system creates code to carry out instrumentation and places it into a Java agent JAR.
 The agent is then passed as an argument to Maven when running client unit tests, which attaches it to the JVM.
 Once classes are loaded, the agent modifies the bytecode and it is then executed.
@@ -243,9 +244,9 @@ from the source package(s) to the target package(s) and represents an interactio
 (e.g. invocations, fields, annotations, subtyping) between packages. 
 The thickness of each edge reflects the frequency of interactions between the source and the target.
 Double-clicking on a node emphasizes its direct interactions with other packages while fading out the rest of the graph.
-To search for a package, the user can click on “show package
-names” and use the browser’s find functionality. 
-The "Link threshold" slider allows the user to form new clusters based on frequencies of interactions.
+To search for a package, the user can click on ``show package
+names'' and use the browser’s find functionality. 
+The ``Link threshold'' slider allows the user to form new clusters based on frequencies of interactions.
 
 
 We run a Python implementation of the Louvain clustering algorithm~\cite{blondel2008fast}, and make the clusters 
@@ -253,5 +254,5 @@ visible by colouring nodes based on cluster.
 Nodes of the same cluster may come from the same or different JARs.
 Hovering on a node shows the list of packages and 
 the JAR that they belong to, 
-formatted as “jar : $\langle$space separated list of packages$\rangle$”. 
+formatted as ``jar : $\langle$space separated list of packages$\rangle$''. 
 Hovering on an edge shows the type of interaction (invocations, fields, annotations, subtyping or a combination of these) between nodes.
