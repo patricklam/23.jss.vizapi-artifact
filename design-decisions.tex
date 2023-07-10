@@ -221,11 +221,12 @@ However, JVMTI agents are not portable between JVMs running on different hosts, 
 
 \subsection{Visualization}
 
-It is common for software developers to use visualizations for development aspects but there are no common standard tools besides building your own and using existing toolkits~\cite{paredes2014}. There is a plethora of information visualization tools and toolkits~\cite{heer2010,liu2014} that enable developers to create visualizations from different kinds of data types. 
+It is common for software developers to use visualizations for development aspects but there are no common standard tools. The options are either building one's own, or using existing toolkits~\cite{paredes2014}. There is a plethora of information visualization tools and toolkits~\cite{heer2010,liu2014} that enable developers to create visualizations from different kinds of data types. 
 Although GraphViz\footnote{\url{https://graphviz.org/}} is the dominant
-free graph layout software, we chose to use d3graph\footnote{https://pypi.org/project/d3graph/} which is a Python library for D3~\cite{bostock2011} to present our graphs due to the ability for the number of visualization techniques the toolkit supports, deployable to the web, developed in Python, and very good uptake within the community. There are also other variants of D3 for different purposes such as Vega~\cite{satyanarayan2016}, VegaLite~\cite{satyanarayan2017}, and Plotly\footnote{https://plotly.com/} among others with bindings for different languages. 
+free graph layout software, we chose to use d3graph\footnote{https://pypi.org/project/d3graph/} which is a Python library for D3~\cite{bostock2011} to present our graphs due to the number of visualization techniques the toolkit supports, the fact that visualizations are deployable to the web, the ease of modifications of the Python code, and the very good uptake within the community. There are also other variants of D3 for different purposes such as Vega~\cite{satyanarayan2016}, VegaLite~\cite{satyanarayan2017}, and Plotly\footnote{https://plotly.com/}, among others, with bindings for different languages.
+
 Our visualizations are still mostly-static representation of a single graph. However,
-d3graph renders to HTML, allows the viewer to interact by rotating the view, moving, and selecting nodes, and that multiple different types of graph techniques are supported. We found it useful to be able to change the viewing angle of more complicated graphs. We can add more interaction capabilities and evolution aspects of the data in the future. 
+d3graph renders to HTML, allows the viewer to interact by rotating the view, moving, and selecting nodes, and supports multiple different types of graph techniques. We found it useful to be able to change the viewing angle of more complicated graphs. d3graph makes it easy to add more interaction capabilities and to capture evolution aspects of the data in the future. 
 
 \subsection{Open design questions}
 We point out some of the design decisions that we have embedded into VizAPI's

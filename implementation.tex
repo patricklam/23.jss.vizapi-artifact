@@ -1,6 +1,6 @@
 \section{VizAPI Implementation}
 \label{sec:implementation}
-We now describe VizAPI which includes two phases: (1) data extraction and (2) visualizations. 
+We now describe VizAPI, which includes two phases: (1) data extraction and (2) visualization. 
 
 The data extraction phase uses static and dynamic
 analysis to collect data about client usages of libraries. We generate both static and
@@ -22,9 +22,9 @@ particular an exploration of the design space for program analysis and visualiza
 \subsection{Overview}
 We briefly give an overview of VizAPI to enable discussions of its design and implementation.
 The VISSOFT paper~\cite{venkatanarayanan22:_vizap}
-and the first author's MMath thesis~\cite{venkatanarayanan22:_study_lever_api_usage_patter} explains VizAPI in more detail.
+and the first author's MMath thesis~\cite{venkatanarayanan22:_study_lever_api_usage_patter} explain VizAPI in more detail.
 
-We first define the terms ``client'', ``library'', ``dependency'' and ``interaction", which we use throughout this paper. A ``client'' is a software component which directly uses some functionality of an external component, which is the ``library''. Any external component that the ``library'' directly uses is a ``dependency'' of that library; components may also have ``transitive dependencies''. The pattern observed when a client/library boundary is crossed is an ``interaction". Examples of interactions include vanilla invocations, field accesses and annotation usage.
+We first define the terms ``client'', ``library'', ``dependency'' and ``interaction", which we use throughout this paper. A ``client'' is a software component which directly uses some functionality of an external component, which is the ``library''. Any external component that the ``library'' directly uses is a ``dependency'' of that library; components may also have ``transitive dependencies''. The pattern observed when a client/library boundary is crossed is an ``interaction". 
 
 VizAPI creates graphs where the nodes are packages that belong to components (clients, libraries and dependencies) and the edges represent the types of interactions between the packages. We create these graphs with the goal of being useful to developers who are thinking about API design questions for their clients and libraries.
 
@@ -40,7 +40,7 @@ Figure~\ref{fig:example} illustrates a VizAPI usage scenario, from the perspecti
 
 To produce its graphs, VizAPI needs to collect information about interactions between clients, libraries, and dependencies. We provide a few examples of interactions---enough to give the idea of what VizAPI is looking for, but not an exhaustive list.
 
-\paragraph{Vanilla invocations} The goal here is to capture information about method calls between components. This information can be approximated statically using Class Hierarchy Analysis, as we describe below. Furthermore, it can also be captured precisely at runtime, at least for the invocations that happens on a particular set of executions.
+\paragraph{Vanilla invocations} The goal here is to capture information about straightforward (``vanilla'') method calls between components, in opposition to the more complicated interactions discussed immediately below. This information can be approximated statically using Class Hierarchy Analysis, as we describe below. Furthermore, it can also be captured precisely at runtime, at least for the invocations that happens on a particular set of executions.
 
 \paragraph{Dynamic proxies and reflective calls} We use a dynamic approach for recording calls made using Java dynamic proxies and Java reflection to avoid needing to make hopelessly conservative approximations. The soundiness manifesto~\cite{livshits15:_in_defen_sound} points out that many papers in the literature claim soundness and are, in fact, sound for most language features, but exclude highly dynamic features like reflection. VizAPI uses dynamic information and instrumentation to capture certain patterns of reflection and dynamic proxies.
 
@@ -163,7 +163,7 @@ Our instrumentation intercepts calls to
 \texttt{java.lang.reflect.Method.invoke()}, a distinguished method
 used to invoke dynamic proxies and reflective calls, 
 recording details of the calls that we intercept at runtime. It is possible for
-static analyses to resolve a subset of such calls using advanced
+static analyses to resolve a subset of such calls using clever
 techniques~\cite{christensen03:_precis_analy_strin_expres}. Our static analysis machinery does not provide enough information to
 statically resolve this dependency, but we have full visibility on
 calls that actually happen dynamically.
@@ -176,8 +176,7 @@ classes in clients, either through instantiations, casts or reflection. To do so
 to method \texttt{load()} in classes with name \texttt{Service*Loader} and record any calls to methods beyond 
 the published interface that we have recorded statically.
 
-%\paragraph{How we implemented instrumentation}
-\paragraph{Instrumentation}
+\paragraph{How we implemented instrumentation}
 In the dynamic analysis phase, we modify the build system of each
 client (we chose clients that all use Maven) to run its provided unit tests on instrumented code.
 Asking the modified build system to run the client's tests gives us dynamic call graphs as a side-effect output.
