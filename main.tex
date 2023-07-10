@@ -135,18 +135,19 @@
 
   \title{Design and implementation of the VizAPI tool: a case study for static and dynamic analysis of Java plus visualization}
 
-%  Design and implementation of the VizAPI tool: s
-  
 %% use optional labels to link authors explicitly to addresses:
 %% \author[label1,label2]{<author name>}
 %% \address[label1]{<address>}
 %% \address[label2]{<address>}
 
-\author{Sruthi Venkatanarayanan}
-\author{Craig Anslow}
-\author{Patrick Lam}
+\author[label1]{Sruthi Venkatanarayanan}
+\author[label2]{Craig Anslow}
+\author[label1]{Patrick Lam\corref{cor}}
+\ead{patrick.lam@uwaterloo.ca}
+\cortext[cor]{Corresponding author}
 
-\address{}
+\address[label1]{University of Waterloo\\200 University Ave W\\Waterloo, ON N2L 3G1\\Canada}
+\address[label2]{Victoria University of Wellington\\PO Box 600\\Wellington 6140\\New Zealand}
 
 \begin{abstract}
   The VizAPI tool shows visualizations that include both static and dynamic interactions between clients, the libraries they use, and those libraries’ transitive dependencies, for the portions of these components that are written in Java. Client developers can use VizAPI to answer queries about upstream code: will their code be affected by breaking changes in library APIs? Library developers can use VizAPI to find out about downstream code: which APIs in their source code are commonly used by clients?
