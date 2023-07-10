@@ -1,7 +1,6 @@
-\section{Implementation}
+\section{VizAPI Implementation}
 \label{sec:implementation}
-VizAPI includes two phases: (1) data extraction and (2)
-visualization. 
+We now describe VizAPI which includes two phases: (1) data extraction and (2) visualizations. 
 
 The data extraction phase uses static and dynamic
 analysis to collect data about client usages of libraries. We generate both static and
@@ -12,8 +11,7 @@ analysis captures all dynamic uses of those patterns and additionally
 reflection, dynamic proxies and service loader bypasses.
 
 The visualization phase transforms the data extracted in the first phase into d3 format by first converting the data into a graph and then using our customized version
-of the d3graph\footnote{\url{https://pypi.org/project/d3graph/}} library in Python to generate d3js\footnote{\url{https://d3js.org/}}
-visualizations. 
+of the d3graph\footnote{\url{https://pypi.org/project/d3graph/}} library in Python to generate d3js\footnote{\url{https://d3js.org/}} visualizations. 
 
 In this section, we start by describing VizAPI. Next, we discuss its implementation. Then, in Section~\ref{sec:design-decisions}, we explore
 alternatives that we could have chosen, including their advantages and
@@ -21,10 +19,10 @@ drawbacks.  The goal of this paper is to produce an explanation of our
 artifact that will be helpful to other researchers, including in
 particular an exploration of the design space for program analysis and visualization tools like ours.
 
-\subsection{VizAPI}
-We briefly describe VizAPI to enable discussions of its design and implementation.
+\subsection{Overview}
+We briefly give an overview of VizAPI to enable discussions of its design and implementation.
 The VISSOFT paper~\cite{venkatanarayanan22:_vizap}
-and the first author's MMath thesis~\cite{venkatanarayanan22:_study_lever_api_usage_patter} explain VizAPI in more detail.
+and the first author's MMath thesis~\cite{venkatanarayanan22:_study_lever_api_usage_patter} explains VizAPI in more detail.
 
 We first define the terms ``client'', ``library'', ``dependency'' and ``interaction", which we use throughout this paper. A ``client'' is a software component which directly uses some functionality of an external component, which is the ``library''. Any external component that the ``library'' directly uses is a ``dependency'' of that library; components may also have ``transitive dependencies''. The pattern observed when a client/library boundary is crossed is an ``interaction". Examples of interactions include vanilla invocations, field accesses and annotation usage.
 
@@ -42,14 +40,14 @@ Figure~\ref{fig:example} illustrates a VizAPI usage scenario, from the perspecti
 
 To produce its graphs, VizAPI needs to collect information about interactions between clients, libraries, and dependencies. We provide a few examples of interactions---enough to give the idea of what VizAPI is looking for, but not an exhaustive list.
 
-\paragraph{Vanilla invocations} The goal here is to capture information about method calls between components. This information can be approximated statically using Class Hierarchy Analysis, as we describe below. Furthermore, it can also be captured precisely at runtime, at least for the invocations that happen on a particular set of executions.
+\paragraph{Vanilla invocations} The goal here is to capture information about method calls between components. This information can be approximated statically using Class Hierarchy Analysis, as we describe below. Furthermore, it can also be captured precisely at runtime, at least for the invocations that happens on a particular set of executions.
 
 \paragraph{Dynamic proxies and reflective calls} We use a dynamic approach for recording calls made using Java dynamic proxies and Java reflection to avoid needing to make hopelessly conservative approximations. The soundiness manifesto~\cite{livshits15:_in_defen_sound} points out that many papers in the literature claim soundness and are, in fact, sound for most language features, but exclude highly dynamic features like reflection. VizAPI uses dynamic information and instrumentation to capture certain patterns of reflection and dynamic proxies.
 
 \paragraph{Service Loaders} This Java API allows Java programs to dynamically load additional code, typically plugins. The plugins would declare a published interface, which we can record statically. VizAPI captures uses of the published interface as well as dynamic calls that exceed the public interface.
 
 
-\subsection{Overall design of VizAPI}
+\subsection{Overall Design of VizAPI}
 We now explain the design of our VizAPI tool, which integrates data from both static and dynamic analysis.
 We use Javassist~\cite{chiba00:_load_struc_reflec_java} for our static analysis, which we discuss in Section~\ref{subsec:static}. We also use Javassist to instrument the code so that we can
 collect dynamic analysis data; we discuss that part in
@@ -165,7 +163,7 @@ Our instrumentation intercepts calls to
 \texttt{java.lang.reflect.Method.invoke()}, a distinguished method
 used to invoke dynamic proxies and reflective calls, 
 recording details of the calls that we intercept at runtime. It is possible for
-static analyses to resolve a subset of such calls using clever
+static analyses to resolve a subset of such calls using advanced
 techniques~\cite{christensen03:_precis_analy_strin_expres}. Our static analysis machinery does not provide enough information to
 statically resolve this dependency, but we have full visibility on
 calls that actually happen dynamically.
@@ -178,7 +176,8 @@ classes in clients, either through instantiations, casts or reflection. To do so
 to method \texttt{load()} in classes with name \texttt{Service*Loader} and record any calls to methods beyond 
 the published interface that we have recorded statically.
 
-\paragraph{How we implemented instrumentation}
+%\paragraph{How we implemented instrumentation}
+\paragraph{Instrumentation}
 In the dynamic analysis phase, we modify the build system of each
 client (we chose clients that all use Maven) to run its provided unit tests on instrumented code.
 Asking the modified build system to run the client's tests gives us dynamic call graphs as a side-effect output.
@@ -196,7 +195,7 @@ and writes them out upon program termination. \\
 While our current benchmark set consists of 101 projects, it is possible to run both our static and dynamic analysis tool and the VizAPI visualization tool on new libraries and clients. However, when a library developer wishes to use VizAPI, they are required to provide a specific set of clients that they wish to observe as input to the tools. Developers can use libraries.io to find popular clients of libraries---it provides a dependency tree based on projects' packaging information.
 
 
-\subsection{Generating Visualizations}
+\subsection{Visualizations}
 \label{subsec:vis-system}
 
 \begin{figure*}[h]
