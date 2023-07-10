@@ -38,7 +38,7 @@ VizAPI creates graphs where the nodes are packages that belong to components (cl
 \end{center}
 \end{figure}
 
-Figure~\ref{fig:example} illustrates a VizAPI usage scenario, from the perspective of a client developer worried about breaking changes from a new version of a library. It shows plain Java client $C$ (blue nodes) and library $L$ (purple nodes). Library $L$ has packages $L_1$, $L_2$, and $L_3$. $C$ calls into $L_1$ and $L_2$. Internally, within $L$, $L_1$ and $L_2$ call into each other, but not into $L_3$. The VizAPI result, with no edges from $C$ directly to $L_3$, allows a developer to conclude that breaking changes in $L_3$ will not affect $C$. Also, if only $L_3$ uses an external dependency $D$ (yellow node), then $C$ will not need $D$ to be on its classpath.
+Figure~\ref{fig:example} illustrates a VizAPI usage scenario, from the perspective of a client developer worried about breaking changes from a new version of a library. It shows Java client $C$ (blue nodes) and library $L$ (purple nodes). Library $L$ has packages $L_1$, $L_2$, and $L_3$. $C$ calls into $L_1$ and $L_2$. Internally, within $L$, $L_1$ and $L_2$ call into each other, but not into $L_3$. The VizAPI result, with no edges from $C$ directly to $L_3$, allows a developer to conclude that breaking changes in $L_3$ will not affect $C$. Also, if only $L_3$ uses an external dependency $D$ (yellow node), then $C$ will not need $D$ to be on its classpath.
 
 To produce its graphs, VizAPI needs to collect information about interactions between clients, libraries, and dependencies. We provide a few examples of interactions---enough to give the idea of what VizAPI is looking for, but not an exhaustive list.
 
@@ -51,7 +51,7 @@ To produce its graphs, VizAPI needs to collect information about interactions be
 
 \subsection{Overall design of VizAPI}
 We now explain the design of our VizAPI tool, which integrates data from both static and dynamic analysis.
-We use Javassist for our static analysis, which we discuss in Section~\ref{subsec:static}. We also use Javassist to instrument the code so that we can
+We use Javassist~\cite{chiba00:_load_struc_reflec_java} for our static analysis, which we discuss in Section~\ref{subsec:static}. We also use Javassist to instrument the code so that we can
 collect dynamic analysis data; we discuss that part in
 Section~\ref{subsec:dynamic}.
 
@@ -111,19 +111,18 @@ Figure~\ref{fig:workflow} summarizes our
 
 \subsection{Static Analysis}
 \label{subsec:static}
-It turns out that a simple (rather superficial) static analysis suffices
+It turns out that a simple (rather straightforward) static analysis suffices
 for our purposes, and we describe parts of it in this section. Section~\ref{sec:design-decisions}
 discusses when the use of more sophisticated analyses is appropriate, and
 how to incorporate such analyses in an analysis pipeline.
 
-For VizAPI, using Javassist~\cite{chiba00:_load_struc_reflec_java}, we 
+For VizAPI, using Javassist, we 
 perform class hierarchy analysis on components and create a static call
 graph. 
 
 We implement class hierarchy analysis ourselves. We first read the class files from JARs of clients, libraries, and dependencies (provided by Maven) and we record
 inheritance relationships between classes. Then, when we walk through the different kinds of interactions,
- we add an edge between the caller and its potential callees
-(as earlier recorded in the inheritance relationships). 
+ we add an edge between the caller and its potential callees---because we use Class Hierarchy Analysis, the set of potential callees follows from the recorded inheritance relationships.
 Some of the interactions we record include vanilla invocations, subtyping and annotations.
 
 \paragraph{Vanilla invocations}
@@ -167,7 +166,7 @@ Our instrumentation intercepts calls to
 used to invoke dynamic proxies and reflective calls, 
 recording details of the calls that we intercept at runtime. It is possible for
 static analyses to resolve a subset of such calls using clever
-techniques~\cite{christensen03:_precis_analy_strin_expres}. Our machinery does not provide enough information to
+techniques~\cite{christensen03:_precis_analy_strin_expres}. Our static analysis machinery does not provide enough information to
 statically resolve this dependency, but we have full visibility on
 calls that actually happen dynamically.
 
@@ -194,10 +193,10 @@ The code that we insert during the instrumentation phase keeps track of interact
 and writes them out upon program termination. \\
 
 
-While our current benchmark set consists of 101 projects, it is possible to run both our static and dynamic analysis tool and the VizAPI visualization tool on new libraries and clients. However, when either tool is run by a library developer, they are required to provide a specific set of clients that they wish to observe as input to the tools. Developers can use libraries.io to find popular clients of libraries---it provides a dependency tree based on projects' packaging information.
+While our current benchmark set consists of 101 projects, it is possible to run both our static and dynamic analysis tool and the VizAPI visualization tool on new libraries and clients. However, when a library developer wishes to use VizAPI, they are required to provide a specific set of clients that they wish to observe as input to the tools. Developers can use libraries.io to find popular clients of libraries---it provides a dependency tree based on projects' packaging information.
 
 
-\subsection{Visualization System}
+\subsection{Generating Visualizations}
 \label{subsec:vis-system}
 
 \begin{figure*}[h]

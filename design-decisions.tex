@@ -82,7 +82,8 @@ Javassist\footnote{\url{https://www.javassist.org/}}~\cite{chiba00:_load_struc_r
 for VizAPI. It provides more of an abstraction layer than BCEL (no
 constant pool) but fewer abstractions than ASM (only one API, not
 two). For our purposes, any of the libraries would have
-worked, though BCEL would have required more effort to use. 
+worked, though BCEL would have required more effort to use. Our application
+is not performance-sensitive.
 
 At a higher (non-bytecode) level, the Soot
 framework~\cite{lam11:_soot_java} provides more support for
@@ -191,7 +192,7 @@ somewhat sparse.
 
 In any case, Doop reads the input program and the analysis definition,
 computes necessary pointer and callgraph information, and feeds the
-facts to the Soufflé Datalog solver. It is fairly simple to read out the
+facts to the Soufflé Datalog solver~\cite{DBLP:conf/cav/JordanSS16}. It is fairly simple to read out the
 Doop results. Doop does not support program transformation and it would
 be challenging to apply Doop results to drive transformations. Doop also
 has substantial runtime cost.
