@@ -220,7 +220,8 @@ They are thus a good choice for monitoring JVM internals such as memory and garb
 However, JVMTI agents are not portable between JVMs running on different hosts, since JVMTI is a native interface and calls outside the JVM.
 
 \subsection{Visualization}
-There is a plethora of visualization tools and toolkits~\cite{heer2010,liu2014} that enable developers to create visualizations from different kinds of data types. 
+
+It is common for software developers to use visualizations for development aspects but there are no common standard tools besides building your own and using existing toolkits~\cite{paredes2014}. There is a plethora of information visualization tools and toolkits~\cite{heer2010,liu2014} that enable developers to create visualizations from different kinds of data types. 
 Although GraphViz\footnote{\url{https://graphviz.org/}} is the dominant
 free graph layout software, we chose to use d3graph\footnote{https://pypi.org/project/d3graph/} which is a Python library for D3~\cite{bostock2011} to present our graphs due to the ability for the number of visualization techniques the toolkit supports, deployable to the web, developed in Python, and very good uptake within the community. There are also other variants of D3 for different purposes such as Vega~\cite{satyanarayan2016}, VegaLite~\cite{satyanarayan2017}, and Plotly\footnote{https://plotly.com/} among others with bindings for different languages. 
 Our visualizations are still mostly-static representation of a single graph. However,
