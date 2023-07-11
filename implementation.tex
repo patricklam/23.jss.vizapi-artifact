@@ -10,10 +10,10 @@ setAccessible(), annotations and inheritance information. The dynamic
 analysis captures all dynamic uses of those patterns and additionally
 reflection, dynamic proxies and service loader bypasses.
 
-The visualization phase transforms the data extracted in the first phase into d3 format by first converting the data into a graph and then using our customized version
+The visualization phase transforms the data extracted in the data extraction phase into d3 format by first converting the data into a graph and then using our customized version
 of the d3graph\footnote{\url{https://pypi.org/project/d3graph/}} library in Python to generate d3js\footnote{\url{https://d3js.org/}} visualizations. 
 
-In this section, we start by describing VizAPI. Next, we discuss its implementation. Then, in Section~\ref{sec:design-decisions}, we explore
+In this section, we start by describing VizAPI. Next, we discuss the implementation of the static and dynamic analyses, as well as the visualization tool. Then, in Section~\ref{sec:design-decisions}, we explore
 alternatives that we could have chosen, including their advantages and
 drawbacks.  The goal of this paper is to produce an explanation of our
 artifact that will be helpful to other researchers, including in
@@ -53,16 +53,19 @@ We use Javassist~\cite{chiba00:_load_struc_reflec_java} for our static analysis,
 collect dynamic analysis data; we discuss that part in
 Section~\ref{subsec:dynamic}.
 
-Our static and dynamic analysis tool takes in a set of clients and libraries as input.
-We programatically obtain a list of dependencies for each client and library by invoking Maven, and locate the JARs that Maven downloads in its build output.
-We first record the extents of components (clients, libraries, and dependencies) by inspecting JAR
-files of each software component to obtain a
-list of classes for that component. We associate classes and their
-members to components based on these lists.  This allows us to
-identify interactions across the client/library boundaries (i.e. between classes that appear on different lists).
-Using Maven, we build JAR
-files that contain source code only. This ensures that we do not
-capture library uses meant solely for unit testing. 
+Our static and dynamic analysis tool takes in a set of clients and
+libraries as input.  We programatically obtain a list of dependencies
+for each client and library by invoking Maven, and locate the JARs
+that Maven downloads in its build output.  For each client component
+and dependency, we ask Maven to create JAR files with non-test code
+only (e.g. code in ``src'' directories). This ensures that we do not
+capture library uses meant solely for unit testing.  We then record
+the extents of components (clients, libraries, and dependencies) by
+inspecting JAR files of each software component to obtain a list of
+classes for that component. We associate classes and their members to
+components based on these lists.  This allows us to identify
+interactions across the client/library boundaries (i.e. between
+classes that appear on different lists).
 
 Figure~\ref{fig:workflow} summarizes our
 (static) data capture and (dynamic) instrumentation workflow.  \\
@@ -109,16 +112,15 @@ Figure~\ref{fig:workflow} summarizes our
 
 \subsection{Static Analysis}
 \label{subsec:static}
-It turns out that a simple (rather straightforward) static analysis suffices
+It turns out that a straightforward static analysis suffices
 for our purposes, and we describe parts of it in this section. Section~\ref{sec:design-decisions}
 discusses when the use of more sophisticated analyses is appropriate, and
 how to incorporate such analyses in an analysis pipeline.
 
 For VizAPI, using Javassist, we 
-perform class hierarchy analysis on components and create a static call
+perform Class Hierarchy Analysis on components and create a static call
 graph. 
-
-We implement class hierarchy analysis ourselves. We first read the class files from JARs of clients, libraries, and dependencies (provided by Maven) and we record
+We implement Class Hierarchy Analysis ourselves. We first read the class files from JARs of clients, libraries, and dependencies (provided by Maven) and we record
 inheritance relationships between classes. Then, when we walk through the different kinds of interactions,
  we add an edge between the caller and its potential callees---because we use Class Hierarchy Analysis, the set of potential callees follows from the recorded inheritance relationships.
 Some of the interactions we record include vanilla invocations, subtyping and annotations.
@@ -191,7 +193,7 @@ The code that we insert during the instrumentation phase keeps track of interact
 and writes them out upon program termination. \\
 
 
-While our current benchmark set consists of 101 projects, it is possible to run both our static and dynamic analysis tool and the VizAPI visualization tool on new libraries and clients. However, when a library developer wishes to use VizAPI, they are required to provide a specific set of clients that they wish to observe as input to the tools. Developers can use libraries.io to find popular clients of libraries---it provides a dependency tree based on projects' packaging information.
+While our current benchmark set consists of 101 projects, it is possible to run VizAPI (both the data extraction and visualization phases) on new libraries and clients. However, when a library developer wishes to use VizAPI, they are required to provide a specific set of clients that they wish to observe as input to the tools. Developers can use libraries.io to find popular clients of libraries---it provides a dependency tree based on projects' packaging information.
 
 
 \subsection{Visualizations}
@@ -238,7 +240,8 @@ outgoing edges.
 
 Each edge is directed
 from the source package(s) to the target package(s) and represents an interaction 
-(e.g. invocations, fields, annotations, subtyping) between packages. 
+(e.g. invocations, fields, annotations, subtyping) between packages. The colour of an edge indicates
+whether it was observed statically, dynamically, or both.
 The thickness of each edge reflects the frequency of interactions between the source and the target.
 Double-clicking on a node emphasizes its direct interactions with other packages while fading out the rest of the graph.
 To search for a package, the user can click on ``show package

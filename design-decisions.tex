@@ -34,7 +34,7 @@ and feeds that back to the static analysis.
 VizAPI integrates static and dynamic information. The approach is
 still not sound with respect to all potential executions, and it does
 not integrate dynamic class loading information into the static
-results, but it does make both types of information (to the extent that it is 
+results, but it does make both static and dynamic information (as 
 captured by the tool) visible to the user.
 
 \subsection{Static analysis and program transformation}
@@ -79,11 +79,11 @@ their analysis code in a certain way).
 
 We chose to use
 Javassist\footnote{\url{https://www.javassist.org/}}~\cite{chiba00:_load_struc_reflec_java}
-for VizAPI. It provides more of an abstraction layer than BCEL (no
-constant pool) but fewer abstractions than ASM (only one API, not
+for VizAPI. It provides more of an abstraction layer than BCEL (which has no
+constant pool) but fewer abstractions than ASM (Javassist has only one API, not
 two). For our purposes, any of the libraries would have
 worked, though BCEL would have required more effort to use. Our application
-is not performance-sensitive.
+is not performance-sensitive; if it were, the ASM event-based API would be most suitable.
 
 At a higher (non-bytecode) level, the Soot
 framework~\cite{lam11:_soot_java} provides more support for
@@ -101,7 +101,8 @@ To provide a concrete example, it is relatively easy to detect method
 invocations in all of these frameworks. It is more difficult to, for
 instance, detect method invocations with constant parameters, because
 the analysis has to reason about the stack contents at the invocation
-site. Soot's three-address code hides the stack from the user. In VizAPI's
+site. Soot's three-address code hides the stack from the user and instead provides local variables for the
+user to work with. In VizAPI's
 case, we only need to detect the method invocation, which is easy
 with any framework.
 
@@ -162,11 +163,11 @@ easy-to-collect dynamic information and could roll back unsound
 assumptions that it might have made).
 
 Also, note that these interprocedural analyses need to know about
-program entry points.  For an application with a \texttt{main()}
+program entry points.  For an application whose execution starts with the \texttt{main()}
 function, this is straightforward.  For Web middleware or for a
 library, this is more complicated, and the user will need to specify
 entry points. VizAPI's test-based dynamic approach essentially uses
-all test cases as potential entry points, and it is relatively
+all test cases as potential entry points, and it is 
 straightforward to generate a driver that invokes all test cases.
 
 \paragraph{Declarative approaches}
@@ -194,19 +195,19 @@ In any case, Doop reads the input program and the analysis definition,
 computes necessary pointer and callgraph information, and feeds the
 facts to the Soufflé Datalog solver~\cite{DBLP:conf/cav/JordanSS16}. It is fairly simple to read out the
 Doop results. Doop does not support program transformation and it would
-be challenging to apply Doop results to drive transformations. Doop also
+be challenging but not impossible to apply Doop results to drive a subsequent transformation phase. Doop also
 has substantial runtime cost.
 
 \subsection{Dynamic analysis}
-As discussed in Section~\ref{subsec:dynamic}, VizAPI uses Java instrumentation APIs (\texttt{java.lang.instrument interface}) and Javassist
+As discussed in Section~\ref{subsec:dynamic}, VizAPI uses Java instrumentation APIs (\texttt{java.lang.instrument} interface) and Javassist
 to transform the code before running the instrumented code as a Java agent to collect
 dynamic data.
 
 Java provides two different mechanisms for gathering dynamic information: Java agents and the Java Virtual Machine Tool Interface (JVMTI).
 
 \paragraph{Java agents}
-Java agents, along with Java instrumentation APIs (\texttt{java.lang.instrument interface}), allow tool builders to modify classes' bytecode at runtime.
-Different libraries, such as ASM and Javassist, provide APIs for bytecode manipulation; having considered the options described above, we chose Javassist for VizAPI.  
+Java agents, along with Java instrumentation APIs, allow tool builders to modify classes' bytecode at runtime.
+Multiple libraries, such as ASM and Javassist, provide APIs for bytecode manipulation; having considered the options described above, we chose Javassist for VizAPI.  
 The Java agent is attached to the JVM, which means it shares the heap and the garbage collector with the application being run.
 Since the agent also runs in the JVM, Java agents are portable between different Virtual Machine implementations.
 We use a Java agent for VizAPI's dynamic analysis because it allows for straightforward bytecode manipulation 
@@ -223,10 +224,10 @@ However, JVMTI agents are not portable between JVMs running on different hosts, 
 
 It is common for software developers to use visualizations for development aspects but there are no common standard tools. The options are either building one's own, or using existing toolkits~\cite{paredes2014}. There is a plethora of information visualization tools and toolkits~\cite{heer2010,liu2014} that enable developers to create visualizations from different kinds of data types. 
 Although GraphViz\footnote{\url{https://graphviz.org/}} is the dominant
-free graph layout software, we chose to use d3graph\footnote{https://pypi.org/project/d3graph/} which is a Python library for D3~\cite{bostock2011} to present our graphs due to the number of visualization techniques the toolkit supports, the fact that visualizations are deployable to the web, the ease of modifications of the Python code, and the very good uptake within the community. There are also other variants of D3 for different purposes such as Vega~\cite{satyanarayan2016}, VegaLite~\cite{satyanarayan2017}, and Plotly\footnote{https://plotly.com/}, among others, with bindings for different languages.
+free graph layout software, we chose to use d3graph\footnote{https://pypi.org/project/d3graph/}, which is a Python library for D3~\cite{bostock2011}, to present our graphs. We made this choice due to the number of visualization techniques the toolkit supports, the fact that visualizations are deployable to the web, the ease of modifications of the Python code, and its good uptake within the community. There are also other variants of D3 for different purposes such as Vega~\cite{satyanarayan2016}, VegaLite~\cite{satyanarayan2017}, and Plotly\footnote{https://plotly.com/}, among others, with bindings for different languages.
 
 Our visualizations are still mostly-static representation of a single graph. However,
-d3graph renders to HTML, allows the viewer to interact by rotating the view, moving, and selecting nodes, and supports multiple different types of graph techniques. We found it useful to be able to change the viewing angle of more complicated graphs. d3graph makes it easy to add more interaction capabilities and to capture evolution aspects of the data in the future. 
+d3graph renders to HTML and allows the viewer to interact with the graph by rotating the view, moving, and selecting nodes. It supports multiple different types of graph techniques. We found it useful to be able to change the viewing angle of more complicated graphs. d3graph provided us with expansion possibilities for the future: it is easy to add more interaction capabilities and to capture and display evolution aspects of the data.
 
 \subsection{Open design questions}
 We point out some of the design decisions that we have embedded into VizAPI's
@@ -234,5 +235,5 @@ design and which could be examined in future work.
 \begin{itemize}
 \item Granularity: We chose Java packages as the level of granularity, and coalesce nodes from the same JAR file and with the same edges. One could have a different coalescing policy. An overly-fine granularity makes graphs that are hard to understand, while an overly-coarse granularity provides no information. Also, some sort of cross-cutting modularity mechanism might make more sense, for instance a filter selecting all classes that use the \texttt{Node} class defined in some library.
 \item Kinds of dependencies: We have chosen what we believe is a fairly exhaustive set of ways that components can depend on each other. Some of these ways may turn out to be unimportant to developers, and we may have missed others.
-\item Combining static and dynamic information: We currently treat static and dynamic information separately. One could imagine an analysis design where dynamic information feeds into static information à la TamiFlex. (Also, by default, we show both static and dynamic edges; users may hide either static or dynamic information.)
+\item Combining static and dynamic information: Although we display both types of information on the same graph, we currently treat static and dynamic information separately. One could imagine an analysis design where dynamic information feeds into static information à la TamiFlex. (By default, we show both static and dynamic edges; users may hide either static or dynamic information.)
 \end{itemize}
